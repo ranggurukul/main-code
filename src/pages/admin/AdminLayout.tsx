@@ -71,7 +71,7 @@ export const AdminLayout: React.FC = () => {
     { id: 'workshops', label: 'Workshops', icon: Ticket },
     { id: 'membership', label: 'Membership', icon: Crown },
     { id: 'communication', label: 'Communication', icon: Mail },
-    { id: 'users', label: 'Users', icon: Users },
+    { id: 'users', label: 'Admin Access Management', icon: Shield },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

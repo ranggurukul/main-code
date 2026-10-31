@@ -10,6 +10,9 @@ import type {
   GalleryPhoto,
   GalleryAlbum,
   AdminUser,
+  AuthorizedAdminEmail,
+  AdminAuditLog,
+  AdminSession,
   HomepageConfig,
   SiteSettings,
   PaymentGatewayConfig,
@@ -37,6 +40,9 @@ export interface DatabaseSchema {
   galleryAlbums: GalleryAlbum[];
   mediaLibrary: MediaItem[];
   adminUsers: AdminUser[];
+  authorizedAdminEmails: AuthorizedAdminEmail[];
+  adminAuditLogs: AdminAuditLog[];
+  adminSessions: AdminSession[];
   homepageConfig: HomepageConfig;
   siteSettings: SiteSettings;
   paymentConfig: PaymentGatewayConfig;
@@ -1069,6 +1075,122 @@ const INITIAL_DATABASE: DatabaseSchema = {
     },
   ],
 
+  authorizedAdminEmails: [
+    {
+      id: 'auth-email-mann',
+      email: 'thematrix2741@gmail.com',
+      name: 'Mann Gor (Owner & Sansthan Trustee)',
+      role: 'OWNER',
+      isPrimaryOwner: true,
+      status: 'active',
+      addedBy: 'Initial System Environment Config',
+      addedAt: '2025-01-01T00:00:00Z',
+      lastLogin: '2026-10-31T12:00:00Z',
+      notes: 'Primary Website Owner & Sansthan Trustee',
+    },
+    {
+      id: 'auth-email-owner',
+      email: 'owner@ranggurukul.org',
+      name: 'Padmashri Anuradha Sen (Sansthan Trustee)',
+      role: 'OWNER',
+      isPrimaryOwner: true,
+      status: 'active',
+      addedBy: 'Initial System Environment Config',
+      addedAt: '2025-01-01T00:00:00Z',
+      lastLogin: '2026-10-01T08:00:00Z',
+      notes: 'Sansthan Trustee & Artistic Director',
+    },
+    {
+      id: 'auth-email-super',
+      email: 'superadmin@ranggurukul.org',
+      name: 'Devrat Joshi (Executive Director)',
+      role: 'SUPER_ADMIN',
+      isPrimaryOwner: false,
+      status: 'active',
+      addedBy: 'owner@ranggurukul.org',
+      addedAt: '2025-02-01T00:00:00Z',
+      lastLogin: '2026-09-30T16:20:00Z',
+      notes: 'Executive Administration & Systems',
+    },
+    {
+      id: 'auth-email-workshops',
+      email: 'workshops@ranggurukul.org',
+      name: 'Shailaja Murthy (Academy Registrar)',
+      role: 'WORKSHOP_ADMIN',
+      isPrimaryOwner: false,
+      status: 'active',
+      addedBy: 'owner@ranggurukul.org',
+      addedAt: '2025-04-10T00:00:00Z',
+      lastLogin: '2026-10-01T06:15:00Z',
+      notes: 'Academy Registrar',
+    },
+    {
+      id: 'auth-email-content',
+      email: 'content@ranggurukul.org',
+      name: 'Dr. Siddharth Narayan (Dramaturgy Head)',
+      role: 'CONTENT_ADMIN',
+      isPrimaryOwner: false,
+      status: 'active',
+      addedBy: 'owner@ranggurukul.org',
+      addedAt: '2025-05-15T00:00:00Z',
+      lastLogin: '2026-09-28T11:40:00Z',
+      notes: 'Dramaturgy Head & Archivist',
+    },
+    {
+      id: 'auth-email-membership',
+      email: 'membership@ranggurukul.org',
+      name: 'Aishwarya Rao (Internship Coordinator)',
+      role: 'MEMBERSHIP_ADMIN',
+      isPrimaryOwner: false,
+      status: 'active',
+      addedBy: 'owner@ranggurukul.org',
+      addedAt: '2025-06-01T00:00:00Z',
+      lastLogin: '2026-09-25T14:10:00Z',
+      notes: 'Internship Coordinator',
+    },
+    {
+      id: 'auth-email-comm',
+      email: 'communication@ranggurukul.org',
+      name: 'Karan Mehra (Communications Officer)',
+      role: 'COMMUNICATION_ADMIN',
+      isPrimaryOwner: false,
+      status: 'active',
+      addedBy: 'owner@ranggurukul.org',
+      addedAt: '2025-07-20T00:00:00Z',
+      lastLogin: '2026-09-29T10:00:00Z',
+      notes: 'Communications Officer',
+    },
+  ],
+
+  adminAuditLogs: [
+    {
+      id: 'audit-log-init-1',
+      timestamp: '2026-10-31T12:00:00Z',
+      action: 'LOGIN_SUCCESS',
+      actorEmail: 'thematrix2741@gmail.com',
+      details: 'Primary Owner authenticated session via Password / Passcode',
+      status: 'SUCCESS',
+    },
+    {
+      id: 'audit-log-init-2',
+      timestamp: '2026-10-30T09:15:00Z',
+      action: 'LOGIN_SUCCESS',
+      actorEmail: 'owner@ranggurukul.org',
+      details: 'Sansthan Trustee authenticated session via Password',
+      status: 'SUCCESS',
+    },
+    {
+      id: 'audit-log-init-3',
+      timestamp: '2026-10-29T14:22:10Z',
+      action: 'GOOGLE_AUTH_DENIED',
+      actorEmail: 'unknown.visitor@gmail.com',
+      details: 'Unauthorized Google account attempted login. Blocked by owner email whitelist policy.',
+      status: 'DENIED',
+    },
+  ],
+
+  adminSessions: [],
+
   homepageConfig: {
     heroTitle: 'RANG GURUKUL',
     heroSubtitle: 'Sansthan for Art, Culture & Theatrical Vanguard',
@@ -1394,6 +1516,24 @@ export class DatabaseService {
           if (!hasMann) {
             parsed.adminUsers.unshift(INITIAL_DATABASE.adminUsers[0]);
           }
+        }
+        if (!parsed.authorizedAdminEmails || !Array.isArray(parsed.authorizedAdminEmails) || parsed.authorizedAdminEmails.length === 0) {
+          parsed.authorizedAdminEmails = [...INITIAL_DATABASE.authorizedAdminEmails];
+        } else {
+          const hasOwner = parsed.authorizedAdminEmails.some((u: any) => u.email?.toLowerCase() === 'owner@ranggurukul.org');
+          if (!hasOwner) {
+            parsed.authorizedAdminEmails.push(INITIAL_DATABASE.authorizedAdminEmails.find(u => u.email === 'owner@ranggurukul.org')!);
+          }
+          const hasMann = parsed.authorizedAdminEmails.some((u: any) => u.email?.toLowerCase() === 'thematrix2741@gmail.com');
+          if (!hasMann) {
+            parsed.authorizedAdminEmails.unshift(INITIAL_DATABASE.authorizedAdminEmails[0]);
+          }
+        }
+        if (!parsed.adminAuditLogs || !Array.isArray(parsed.adminAuditLogs)) {
+          parsed.adminAuditLogs = [...INITIAL_DATABASE.adminAuditLogs];
+        }
+        if (!parsed.adminSessions || !Array.isArray(parsed.adminSessions)) {
+          parsed.adminSessions = [];
         }
         // Merge with initial in case new keys were added in schema
         this.cache = { ...INITIAL_DATABASE, ...parsed };
@@ -2126,24 +2266,498 @@ export class DatabaseService {
     return newAdmin;
   }
 
-  public toggleAdminStatus(id: string): void {
+  public toggleAdminStatus(id: string, actorEmail?: string): { success: boolean; message: string } {
     const db = this.getSnapshot();
-    const adm = db.adminUsers.find((a) => a.id === id);
-    if (adm && adm.role !== 'OWNER') {
-      adm.status = adm.status === 'active' ? 'disabled' : 'active';
-      this.save();
+    if (actorEmail) {
+      const actor = db.adminUsers.find((a) => a.email.toLowerCase() === actorEmail.toLowerCase() && a.status === 'active');
+      if (!actor || actor.role !== 'OWNER') {
+        return { success: false, message: 'Permission denied: Only the Primary Website Owner can toggle administrator status.' };
+      }
     }
+    const adm = db.adminUsers.find((a) => a.id === id);
+    if (!adm) return { success: false, message: 'Administrator not found.' };
+
+    if (adm.role === 'OWNER') {
+      const activeOwners = db.adminUsers.filter((a) => a.role === 'OWNER' && a.status === 'active');
+      if (adm.status === 'active' && activeOwners.length <= 1) {
+        return { success: false, message: 'Operation blocked: Cannot disable the last remaining Primary Owner account.' };
+      }
+    }
+
+    adm.status = adm.status === 'active' ? 'disabled' : 'active';
+    // Sync with authorizedAdminEmails
+    if (!db.authorizedAdminEmails) db.authorizedAdminEmails = [];
+    const authEntry = db.authorizedAdminEmails.find((ae) => ae.email.toLowerCase() === adm.email.toLowerCase());
+    if (authEntry) {
+      authEntry.status = adm.status;
+    }
+    if (adm.status === 'disabled') {
+      this.revokeAllSessionsForEmail(adm.email);
+    }
+    this.addAdminAuditLog({
+      action: 'STATUS_CHANGED',
+      actorEmail: actorEmail || 'system',
+      targetEmail: adm.email,
+      details: `Administrator account status changed to '${adm.status}'.`,
+      status: 'SUCCESS',
+    });
+    this.save();
+    return { success: true, message: `Administrator status successfully updated to ${adm.status}.` };
   }
 
-  public deleteAdminUser(id: string): boolean {
+  public toggleAuthorizedEmailStatus(id: string, actorEmail?: string): { success: boolean; message: string } {
+    return this.toggleAdminStatus(id, actorEmail);
+  }
+
+  public deleteAdminUser(id: string, actorEmail?: string): { success: boolean; message: string } {
     const db = this.getSnapshot();
-    const adm = db.adminUsers.find((a) => a.id === id);
-    if (adm && adm.role === 'OWNER') {
-      return false; // Owner account can never be deleted
+    if (actorEmail) {
+      const actor = db.adminUsers.find((a) => a.email.toLowerCase() === actorEmail.toLowerCase() && a.status === 'active');
+      if (!actor || actor.role !== 'OWNER') {
+        return { success: false, message: 'Permission denied: Only the Primary Website Owner can remove administrator authorizations.' };
+      }
     }
+    const adm = db.adminUsers.find((a) => a.id === id);
+    if (!adm) return { success: false, message: 'Administrator not found.' };
+
+    if (adm.role === 'OWNER') {
+      const owners = db.adminUsers.filter((a) => a.role === 'OWNER');
+      if (owners.length <= 1) {
+        return { success: false, message: 'Operation blocked: Cannot delete or remove the last remaining Primary Owner account.' };
+      }
+    }
+
+    const targetEmail = adm.email;
     db.adminUsers = db.adminUsers.filter((a) => a.id !== id);
+    if (db.authorizedAdminEmails) {
+      db.authorizedAdminEmails = db.authorizedAdminEmails.filter((ae) => ae.email.toLowerCase() !== targetEmail.toLowerCase());
+    }
+    this.revokeAllSessionsForEmail(targetEmail);
+    this.addAdminAuditLog({
+      action: 'ADMIN_REMOVED',
+      actorEmail: actorEmail || 'system',
+      targetEmail,
+      details: `Administrator authorization permanently revoked and all active sessions terminated.`,
+      status: 'SUCCESS',
+    });
     this.save();
-    return true;
+    return { success: true, message: `Administrator ${targetEmail} access successfully revoked.` };
+  }
+
+  // --- OWNER-CONTROLLED ADMIN ACCESS MANAGEMENT ---
+  public getAuthorizedAdminEmails(): AuthorizedAdminEmail[] {
+    const db = this.getSnapshot();
+    if (!db.authorizedAdminEmails || db.authorizedAdminEmails.length === 0) {
+      db.authorizedAdminEmails = [...INITIAL_DATABASE.authorizedAdminEmails];
+      this.save();
+    }
+    return db.authorizedAdminEmails;
+  }
+
+  public addAuthorizedEmail(
+    params: { email: string; name: string; role: AdminUser['role']; notes?: string },
+    actorEmail: string
+  ): { success: boolean; message: string; record?: AuthorizedAdminEmail } {
+    const db = this.getSnapshot();
+    const cleanActor = actorEmail.trim().toLowerCase();
+    const actor = db.adminUsers.find((a) => a.email.toLowerCase() === cleanActor && a.status === 'active');
+    
+    // Strict Owner check
+    if (!actor || actor.role !== 'OWNER') {
+      this.addAdminAuditLog({
+        action: 'ADMIN_ADDED',
+        actorEmail: cleanActor,
+        targetEmail: params.email,
+        details: 'Unauthorized attempt to add admin email blocked: Actor is not an Owner.',
+        status: 'DENIED',
+      });
+      return { success: false, message: 'Permission denied: Only the Primary Website Owner can authorize administrator email addresses.' };
+    }
+
+    const cleanEmail = params.email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      return { success: false, message: 'Invalid email address format.' };
+    }
+
+    if (!db.authorizedAdminEmails) db.authorizedAdminEmails = [];
+    const existing = db.authorizedAdminEmails.find((ae) => ae.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      return { success: false, message: `Email ${cleanEmail} is already registered on the authorized list.` };
+    }
+
+    const isPrimary = params.role === 'OWNER';
+    const newAuthRecord: AuthorizedAdminEmail = {
+      id: 'auth-email-' + Date.now(),
+      email: cleanEmail,
+      name: params.name.trim(),
+      role: params.role,
+      isPrimaryOwner: isPrimary,
+      status: 'active',
+      addedBy: cleanActor,
+      addedAt: new Date().toISOString(),
+      notes: params.notes || 'Authorized Staff Administrator',
+    };
+
+    db.authorizedAdminEmails.push(newAuthRecord);
+
+    // Also sync into adminUsers
+    const existingAdminIdx = db.adminUsers.findIndex((a) => a.email.toLowerCase() === cleanEmail);
+    if (existingAdminIdx >= 0) {
+      db.adminUsers[existingAdminIdx] = {
+        ...db.adminUsers[existingAdminIdx],
+        name: params.name.trim(),
+        role: params.role,
+        status: 'active',
+        isPrimaryOwner: isPrimary,
+      };
+    } else {
+      const defaultPermissions = {
+        canManageAdmins: params.role === 'OWNER',
+        canManageContent: ['OWNER', 'SUPER_ADMIN', 'CONTENT_ADMIN'].includes(params.role),
+        canManageMembership: ['OWNER', 'SUPER_ADMIN', 'MEMBERSHIP_ADMIN'].includes(params.role),
+        canManageWorkshops: ['OWNER', 'SUPER_ADMIN', 'WORKSHOP_ADMIN'].includes(params.role),
+        canManageSubscribers: ['OWNER', 'SUPER_ADMIN', 'COMMUNICATION_ADMIN'].includes(params.role),
+        canManageGallery: ['OWNER', 'SUPER_ADMIN', 'CONTENT_ADMIN'].includes(params.role),
+        canManageSettings: ['OWNER', 'SUPER_ADMIN'].includes(params.role),
+        canManagePrices: ['OWNER'].includes(params.role),
+      };
+
+      db.adminUsers.push({
+        id: 'adm-' + Date.now(),
+        name: params.name.trim(),
+        email: cleanEmail,
+        role: params.role,
+        status: 'active',
+        isPrimaryOwner: isPrimary,
+        permissions: defaultPermissions,
+        createdAt: new Date().toISOString(),
+        addedBy: cleanActor,
+        addedAt: new Date().toISOString(),
+      });
+    }
+
+    this.addAdminAuditLog({
+      action: 'ADMIN_ADDED',
+      actorEmail: cleanActor,
+      targetEmail: cleanEmail,
+      details: `New administrator email authorized with role ${params.role}.`,
+      status: 'SUCCESS',
+    });
+
+    this.save();
+    return {
+      success: true,
+      message: `Administrator email ${cleanEmail} successfully authorized for ${params.role} access.`,
+      record: newAuthRecord,
+    };
+  }
+
+  public removeAuthorizedEmail(idOrEmail: string, actorEmail: string): { success: boolean; message: string } {
+    const db = this.getSnapshot();
+    const cleanActor = actorEmail.trim().toLowerCase();
+    const actor = db.adminUsers.find((a) => a.email.toLowerCase() === cleanActor && a.status === 'active');
+    
+    if (!actor || actor.role !== 'OWNER') {
+      this.addAdminAuditLog({
+        action: 'ADMIN_REMOVED',
+        actorEmail: cleanActor,
+        details: 'Unauthorized attempt to remove admin email blocked: Actor is not an Owner.',
+        status: 'DENIED',
+      });
+      return { success: false, message: 'Permission denied: Only the Primary Website Owner can revoke administrator authorizations.' };
+    }
+
+    if (!db.authorizedAdminEmails) db.authorizedAdminEmails = [];
+    const targetAuth = db.authorizedAdminEmails.find(
+      (ae) => ae.id === idOrEmail || ae.email.toLowerCase() === idOrEmail.toLowerCase()
+    );
+
+    if (!targetAuth) {
+      return { success: false, message: 'Authorized administrator email record not found.' };
+    }
+
+    // Check last primary owner protection
+    if (targetAuth.role === 'OWNER') {
+      const activeOwners = db.authorizedAdminEmails.filter((ae) => ae.role === 'OWNER' && ae.status === 'active');
+      if (activeOwners.length <= 1) {
+        this.addAdminAuditLog({
+          action: 'ADMIN_REMOVED',
+          actorEmail: cleanActor,
+          targetEmail: targetAuth.email,
+          details: 'Attempt to delete last primary owner blocked by safety guardrail.',
+          status: 'BLOCKED',
+        });
+        return { success: false, message: 'Operation blocked: Cannot delete or remove the last remaining Primary Owner account.' };
+      }
+    }
+
+    const targetEmail = targetAuth.email.toLowerCase();
+    db.authorizedAdminEmails = db.authorizedAdminEmails.filter((ae) => ae.email.toLowerCase() !== targetEmail);
+    db.adminUsers = db.adminUsers.filter((a) => a.email.toLowerCase() !== targetEmail);
+    this.revokeAllSessionsForEmail(targetEmail);
+
+    this.addAdminAuditLog({
+      action: 'ADMIN_REMOVED',
+      actorEmail: cleanActor,
+      targetEmail,
+      details: 'Administrator email authorization permanently removed by Owner. All active sessions invalidated.',
+      status: 'SUCCESS',
+    });
+
+    this.save();
+    return { success: true, message: `Administrator authorization for ${targetEmail} removed.` };
+  }
+
+  // --- AUDIT LOGS ---
+  public getAdminAuditLogs(): AdminAuditLog[] {
+    const db = this.getSnapshot();
+    if (!db.adminAuditLogs) db.adminAuditLogs = [];
+    return [...db.adminAuditLogs].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  public addAdminAuditLog(log: Omit<AdminAuditLog, 'id' | 'timestamp'>): AdminAuditLog {
+    const db = this.getSnapshot();
+    if (!db.adminAuditLogs) db.adminAuditLogs = [];
+
+    const newLog: AdminAuditLog = {
+      id: 'audit-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+      timestamp: new Date().toISOString(),
+      ...log,
+    };
+
+    db.adminAuditLogs.unshift(newLog);
+    // Cap at 200 items
+    if (db.adminAuditLogs.length > 200) {
+      db.adminAuditLogs = db.adminAuditLogs.slice(0, 200);
+    }
+    this.save();
+    return newLog;
+  }
+
+  // --- STRICT VERIFICATION & ACCESS CONTROL ---
+  public verifyAdminAccess(
+    email: string,
+    method: 'google' | 'password',
+    ip?: string,
+    userAgent?: string
+  ): {
+    authorized: boolean;
+    errorType?: 'NOT_AUTHORIZED' | 'ACCOUNT_DISABLED' | 'INVALID_ROLE';
+    message: string;
+    admin?: AdminUser;
+    isOwner?: boolean;
+    sessionToken?: string;
+  } {
+    const db = this.getSnapshot();
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1. Check in authorizedAdminEmails
+    const authList = db.authorizedAdminEmails || [];
+    const authRecord = authList.find((ae) => ae.email.toLowerCase() === cleanEmail);
+
+    // 2. Also cross-reference in adminUsers
+    const adminUser = db.adminUsers.find((a) => a.email.toLowerCase() === cleanEmail);
+
+    if (!authRecord && !adminUser) {
+      if (method === 'google') {
+        this.addAdminAuditLog({
+          action: 'GOOGLE_AUTH_DENIED',
+          actorEmail: cleanEmail,
+          details: 'Unauthorized Google account attempted login. Blocked: Email not in authorized administrator list.',
+          status: 'DENIED',
+          ipAddress: ip,
+          userAgent,
+        });
+        return {
+          authorized: false,
+          errorType: 'NOT_AUTHORIZED',
+          message: 'This Google account is not authorized to access the Rang Gurukul Admin Panel. Please contact the website owner for access.',
+        };
+      }
+
+      this.addAdminAuditLog({
+        action: 'LOGIN_FAILED',
+        actorEmail: cleanEmail,
+        details: 'Login rejected: Email address not on authorized administrator whitelist.',
+        status: 'DENIED',
+        ipAddress: ip,
+        userAgent,
+      });
+      return {
+        authorized: false,
+        errorType: 'NOT_AUTHORIZED',
+        message: 'Access Denied: Your email address has not been authorized by the Rang Gurukul owner.',
+      };
+    }
+
+    // Check if deactivated / disabled
+    const isDeactivated =
+      (authRecord && authRecord.status === 'disabled') || (adminUser && adminUser.status === 'disabled');
+
+    if (isDeactivated) {
+      this.addAdminAuditLog({
+        action: 'LOGIN_FAILED',
+        actorEmail: cleanEmail,
+        details: 'Login blocked: Account has been deactivated by the Sansthan Trustee.',
+        status: 'BLOCKED',
+        ipAddress: ip,
+        userAgent,
+      });
+      return {
+        authorized: false,
+        errorType: 'ACCOUNT_DISABLED',
+        message: 'Access Restricted: This administrator account has been deactivated by the Sansthan Trustee.',
+      };
+    }
+
+    // Active & Authorized
+    const matchedAdmin = adminUser || {
+      id: authRecord!.id,
+      name: authRecord!.name,
+      email: authRecord!.email,
+      role: authRecord!.role,
+      status: 'active' as const,
+      isPrimaryOwner: authRecord!.isPrimaryOwner,
+      permissions: {
+        canManageAdmins: authRecord!.role === 'OWNER',
+        canManageContent: true,
+        canManageMembership: true,
+        canManageWorkshops: true,
+        canManageSubscribers: true,
+        canManageGallery: true,
+        canManageSettings: authRecord!.role === 'OWNER' || authRecord!.role === 'SUPER_ADMIN',
+        canManagePrices: authRecord!.role === 'OWNER',
+      },
+      createdAt: authRecord!.addedAt,
+    };
+
+    // Update lastLogin
+    const nowIso = new Date().toISOString();
+    matchedAdmin.lastLogin = nowIso;
+    if (adminUser) adminUser.lastLogin = nowIso;
+    if (authRecord) authRecord.lastLogin = nowIso;
+
+    // Create session
+    const session = this.createAdminSession(matchedAdmin, ip, userAgent);
+
+    this.addAdminAuditLog({
+      action: 'LOGIN_SUCCESS',
+      actorEmail: cleanEmail,
+      details: `Administrator session authenticated successfully via ${
+        method === 'google' ? 'Google OAuth' : 'Password / Passcode'
+      }. Role: ${matchedAdmin.role}`,
+      status: 'SUCCESS',
+      ipAddress: ip,
+      userAgent,
+    });
+
+    this.save();
+    return {
+      authorized: true,
+      admin: matchedAdmin,
+      isOwner: matchedAdmin.role === 'OWNER',
+      sessionToken: session.token,
+      message: `Welcome back, ${matchedAdmin.name}. Access granted.`,
+    };
+  }
+
+  // --- SESSIONS ---
+  public createAdminSession(admin: AdminUser, ip?: string, userAgent?: string): AdminSession {
+    const db = this.getSnapshot();
+    if (!db.adminSessions) db.adminSessions = [];
+
+    const token =
+      'rg_sess_' + Date.now() + '_' + Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+
+    const session: AdminSession = {
+      token,
+      adminId: admin.id,
+      email: admin.email.toLowerCase(),
+      role: admin.role,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8 hours
+      ipAddress: ip,
+      userAgent,
+    };
+
+    db.adminSessions.push(session);
+    this.save();
+    return session;
+  }
+
+  public validateAdminSession(token: string): { valid: boolean; admin?: AdminUser } {
+    if (!token) return { valid: false };
+    const db = this.getSnapshot();
+    if (!db.adminSessions) return { valid: false };
+
+    const session = db.adminSessions.find((s) => s.token === token);
+    if (!session) return { valid: false };
+
+    // Check expiration
+    if (new Date(session.expiresAt).getTime() < Date.now()) {
+      this.revokeAdminSession(token);
+      return { valid: false };
+    }
+
+    // Verify admin is still in authorized list and active
+    const cleanEmail = session.email.toLowerCase();
+    const authList = db.authorizedAdminEmails || [];
+    const authRecord = authList.find((ae) => ae.email.toLowerCase() === cleanEmail);
+    const adminUser = db.adminUsers.find((a) => a.email.toLowerCase() === cleanEmail);
+
+    if (!authRecord && !adminUser) {
+      this.revokeAdminSession(token);
+      return { valid: false };
+    }
+
+    if (
+      (authRecord && authRecord.status === 'disabled') ||
+      (adminUser && adminUser.status === 'disabled')
+    ) {
+      this.revokeAdminSession(token);
+      return { valid: false };
+    }
+
+    return { valid: true, admin: adminUser || (authRecord as any) };
+  }
+
+  public revokeAdminSession(token: string): void {
+    const db = this.getSnapshot();
+    if (!db.adminSessions) return;
+    const session = db.adminSessions.find((s) => s.token === token);
+    if (session) {
+      this.addAdminAuditLog({
+        action: 'LOGOUT',
+        actorEmail: session.email,
+        details: 'Admin session terminated (logged out).',
+        status: 'SUCCESS',
+      });
+    }
+    db.adminSessions = db.adminSessions.filter((s) => s.token !== token);
+    this.save();
+  }
+
+  public revokeAllSessionsForEmail(email: string): void {
+    const db = this.getSnapshot();
+    if (!db.adminSessions) return;
+    const cleanEmail = email.toLowerCase();
+    db.adminSessions = db.adminSessions.filter((s) => s.email.toLowerCase() !== cleanEmail);
+    this.save();
+  }
+
+  public attemptAdminRegistration(email: string, _name?: string): { success: boolean; error: string; message: string } {
+    const cleanEmail = email.trim().toLowerCase();
+    this.addAdminAuditLog({
+      action: 'LOGIN_FAILED',
+      actorEmail: cleanEmail,
+      details: 'Public administrator registration attempted and blocked by policy.',
+      status: 'BLOCKED',
+    });
+    return {
+      success: false,
+      error: 'Access Restricted',
+      message: 'Administrator registration is invitation-only. Your email address has not been authorized by the Rang Gurukul owner.',
+    };
   }
 
   // --- MEDIA LIBRARY REPOSITORY ---

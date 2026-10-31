@@ -12,6 +12,9 @@ import type {
   GalleryPhoto,
   GalleryAlbum,
   AdminUser,
+  AuthorizedAdminEmail,
+  AdminAuditLog,
+  AdminSession,
   HomepageConfig,
   SiteSettings,
   PaymentGatewayConfig,
@@ -38,11 +41,32 @@ interface DatabaseContextValue {
   galleryAlbums: GalleryAlbum[];
   mediaLibrary: MediaItem[];
   adminUsers: AdminUser[];
+  authorizedAdminEmails: AuthorizedAdminEmail[];
+  adminAuditLogs: AdminAuditLog[];
   homepageConfig: HomepageConfig;
   siteSettings: SiteSettings;
   paymentConfig: PaymentGatewayConfig;
   emailConfig: EmailProviderConfig;
   emailBroadcasts: EmailBroadcast[];
+
+  // Admin Access Management Actions
+  addAuthorizedEmail: (
+    params: { email: string; name: string; role: AdminUser['role']; notes?: string },
+    actorEmail: string
+  ) => { success: boolean; message: string; record?: AuthorizedAdminEmail };
+  removeAuthorizedEmail: (idOrEmail: string, actorEmail: string) => { success: boolean; message: string };
+  toggleAuthorizedEmailStatus: (id: string, actorEmail: string) => { success: boolean; message: string };
+  getAdminAuditLogs: () => AdminAuditLog[];
+  addAdminAuditLog: (log: Omit<AdminAuditLog, 'id' | 'timestamp'>) => AdminAuditLog;
+  verifyAdminAccess: (
+    email: string,
+    method: 'google' | 'password',
+    ip?: string,
+    userAgent?: string
+  ) => ReturnType<typeof dbService.verifyAdminAccess>;
+  validateAdminSession: (token: string) => { valid: boolean; admin?: AdminUser };
+  revokeAdminSession: (token: string) => void;
+  attemptAdminRegistration: (email: string, name?: string) => { success: boolean; error: string; message: string };
 
   // Media Library Actions
   saveMediaItem: (item: MediaItem) => MediaItem;
@@ -113,8 +137,8 @@ interface DatabaseContextValue {
   updateEmailConfig: (updates: Partial<EmailProviderConfig>) => EmailProviderConfig;
 
   saveAdminUser: (admin: Partial<AdminUser> & { name: string; email: string; role: AdminUser['role'] }) => AdminUser;
-  toggleAdminStatus: (id: string) => void;
-  deleteAdminUser: (id: string) => boolean;
+  toggleAdminStatus: (id: string, actorEmail?: string) => { success: boolean; message: string };
+  deleteAdminUser: (id: string, actorEmail?: string) => { success: boolean; message: string };
   resetDatabase: () => void;
 
   // Four Pillars: Disciplines, Programs, Events, Stories
@@ -178,6 +202,8 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     galleryAlbums: db.galleryAlbums,
     mediaLibrary: db.mediaLibrary || [],
     adminUsers: db.adminUsers,
+    authorizedAdminEmails: db.authorizedAdminEmails || [],
+    adminAuditLogs: db.adminAuditLogs || [],
     homepageConfig: db.homepageConfig,
     siteSettings: db.siteSettings,
     paymentConfig: db.paymentConfig,
@@ -333,9 +359,57 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return res;
     },
 
-    saveAdminUser: (admin) => dbService.saveAdminUser(admin),
-    toggleAdminStatus: (id) => dbService.toggleAdminStatus(id),
-    deleteAdminUser: (id) => dbService.deleteAdminUser(id),
+    saveAdminUser: (admin) => {
+      const res = dbService.saveAdminUser(admin);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    toggleAdminStatus: (id: string, actorEmail?: string) => {
+      const res = dbService.toggleAdminStatus(id, actorEmail);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    deleteAdminUser: (id: string, actorEmail?: string) => {
+      const res = dbService.deleteAdminUser(id, actorEmail);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    addAuthorizedEmail: (params, actorEmail) => {
+      const res = dbService.addAuthorizedEmail(params, actorEmail);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    removeAuthorizedEmail: (idOrEmail, actorEmail) => {
+      const res = dbService.removeAuthorizedEmail(idOrEmail, actorEmail);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    toggleAuthorizedEmailStatus: (id, actorEmail) => {
+      const res = dbService.toggleAuthorizedEmailStatus(id, actorEmail);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    getAdminAuditLogs: () => dbService.getAdminAuditLogs(),
+    addAdminAuditLog: (log) => {
+      const res = dbService.addAdminAuditLog(log);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    verifyAdminAccess: (email, method, ip, userAgent) => {
+      const res = dbService.verifyAdminAccess(email, method, ip, userAgent);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    validateAdminSession: (token) => dbService.validateAdminSession(token),
+    revokeAdminSession: (token) => {
+      dbService.revokeAdminSession(token);
+      setDb({ ...dbService.getSnapshot() });
+    },
+    attemptAdminRegistration: (email, name) => {
+      const res = dbService.attemptAdminRegistration(email, name);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
     resetDatabase: () => {
       const fresh = dbService.resetToDefaults();
       setDb(fresh);

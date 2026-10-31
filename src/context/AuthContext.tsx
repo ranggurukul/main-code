@@ -1,15 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useDatabase } from './DatabaseContext';
 import type { AdminUser, MemberUser } from '../types/database';
+import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { auth } from '../services/firebase';
 
 interface AuthContextValue {
   currentAdmin: AdminUser | null;
   isAdminLoggedIn: boolean;
   isOwner: boolean;
+  sessionToken: string | null;
   currentMember: MemberUser | null;
   isMemberLoggedIn: boolean;
 
-  adminLogin: (email: string, password?: string) => { success: boolean; message: string; admin?: AdminUser };
+  adminLogin: (email: string, password?: string) => { success: boolean; message: string; admin?: AdminUser; errorType?: string };
+  adminGoogleLogin: (simulatedEmail?: string) => Promise<{ success: boolean; message: string; admin?: AdminUser; errorType?: string }>;
   adminLogout: () => void;
   canAccess: (permission: keyof AdminUser['permissions']) => boolean;
 
@@ -21,10 +25,26 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const ADMIN_STORAGE_KEY = 'rang_gurukul_current_admin';
+const ADMIN_SESSION_KEY = 'rang_gurukul_admin_session_token';
 const MEMBER_STORAGE_KEY = 'rang_gurukul_current_member';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { adminUsers, members } = useDatabase();
+  const {
+    adminUsers,
+    authorizedAdminEmails,
+    members,
+    verifyAdminAccess,
+    validateAdminSession,
+    revokeAdminSession,
+  } = useDatabase();
+
+  const [sessionToken, setSessionToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(ADMIN_SESSION_KEY);
+    } catch {
+      return null;
+    }
+  });
 
   const [currentAdmin, setCurrentAdmin] = useState<AdminUser | null>(() => {
     try {
@@ -47,20 +67,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // ignore
     }
-    // Default to the first seed member so member portal is immediately accessible in demo
     return members[0] || null;
   });
 
+  // Verify session validity on mount and when authorizedAdminEmails changes
+  useEffect(() => {
+    if (sessionToken) {
+      const check = validateAdminSession(sessionToken);
+      if (!check.valid) {
+        // Session expired or administrator authorization was revoked
+        setCurrentAdmin(null);
+        setSessionToken(null);
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+      } else if (check.admin) {
+        setCurrentAdmin(check.admin);
+        localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(check.admin));
+      }
+    } else if (currentAdmin) {
+      // Check if admin is still in authorized list and active
+      const isAuth = authorizedAdminEmails.some(
+        (a) => a.email.toLowerCase() === currentAdmin.email.toLowerCase() && a.status === 'active'
+      );
+      if (!isAuth) {
+        setCurrentAdmin(null);
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+      }
+    }
+  }, [sessionToken, authorizedAdminEmails]);
+
+  // Sync admin user profile modifications
   useEffect(() => {
     if (currentAdmin) {
-      // Sync with updated admin data if permissions or status changed in db
-      const updated = adminUsers.find((a) => a.id === currentAdmin.id);
+      const updated = adminUsers.find((a) => a.id === currentAdmin.id || a.email.toLowerCase() === currentAdmin.email.toLowerCase());
       if (updated && updated.status !== 'disabled') {
         setCurrentAdmin(updated);
         localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(updated));
       } else if (updated && updated.status === 'disabled') {
         setCurrentAdmin(null);
+        setSessionToken(null);
         localStorage.removeItem(ADMIN_STORAGE_KEY);
+        localStorage.removeItem(ADMIN_SESSION_KEY);
       }
     }
   }, [adminUsers]);
@@ -77,26 +124,116 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [members]);
 
+  // 1. EMAIL & PASSWORD LOGIN
   const adminLogin = (email: string, _password?: string) => {
     const cleanEmail = email.trim().toLowerCase();
-    const admin = adminUsers.find((a) => a.email.toLowerCase() === cleanEmail);
+    const result = verifyAdminAccess(cleanEmail, 'password');
 
-    if (!admin) {
-      return { success: false, message: 'Invalid admin credentials or unauthorized account.' };
+    if (!result.authorized || !result.admin) {
+      return {
+        success: false,
+        errorType: result.errorType,
+        message: result.message,
+      };
     }
 
-    if (admin.status === 'disabled') {
-      return { success: false, message: 'This administrative account has been deactivated by the Sansthan Trustee.' };
+    setCurrentAdmin(result.admin);
+    if (result.sessionToken) {
+      setSessionToken(result.sessionToken);
+      localStorage.setItem(ADMIN_SESSION_KEY, result.sessionToken);
+    }
+    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(result.admin));
+    return {
+      success: true,
+      message: result.message,
+      admin: result.admin,
+    };
+  };
+
+  // 2. STRICT GOOGLE SIGN-IN
+  const adminGoogleLogin = async (
+    simulatedEmail?: string
+  ): Promise<{ success: boolean; message: string; admin?: AdminUser; errorType?: string }> => {
+    let verifiedEmail = '';
+
+    if (simulatedEmail) {
+      verifiedEmail = simulatedEmail.trim().toLowerCase();
+    } else {
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const userCredential = await signInWithPopup(auth, provider);
+        verifiedEmail = userCredential.user.email?.trim().toLowerCase() || '';
+      } catch (err: any) {
+        // Return clear, actionable error
+        const code = err.code || '';
+        if (code === 'auth/popup-closed-by-user') {
+          return { success: false, message: 'Google Sign-In was cancelled before completing.' };
+        }
+        if (code === 'auth/operation-not-allowed' || code === 'auth/configuration-not-found') {
+          return {
+            success: false,
+            errorType: 'GOOGLE_CONFIG_REQUIRED',
+            message:
+              'Google Sign-In provider is not yet enabled in the Firebase Console. Please enable Google in Firebase Console > Authentication > Sign-in method.',
+          };
+        }
+        return {
+          success: false,
+          message: err.message || 'Google authentication encountered an unexpected error.',
+        };
+      }
     }
 
-    setCurrentAdmin(admin);
-    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(admin));
-    return { success: true, message: `Welcome back, ${admin.name}. Access granted.`, admin };
+    if (!verifiedEmail) {
+      return { success: false, message: 'No verified email address received from Google authentication.' };
+    }
+
+    // Backend / Database authorization check
+    const authResult = verifyAdminAccess(verifiedEmail, 'google');
+
+    if (!authResult.authorized || !authResult.admin) {
+      // Immediately sign out from Firebase/Google session
+      try {
+        await signOut(auth);
+      } catch {
+        // ignore
+      }
+      return {
+        success: false,
+        errorType: 'PERMISSION_DENIED',
+        message: authResult.message,
+      };
+    }
+
+    // Authorized Admin
+    setCurrentAdmin(authResult.admin);
+    if (authResult.sessionToken) {
+      setSessionToken(authResult.sessionToken);
+      localStorage.setItem(ADMIN_SESSION_KEY, authResult.sessionToken);
+    }
+    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(authResult.admin));
+
+    return {
+      success: true,
+      message: authResult.message,
+      admin: authResult.admin,
+    };
   };
 
   const adminLogout = () => {
+    if (sessionToken) {
+      revokeAdminSession(sessionToken);
+    }
+    try {
+      signOut(auth);
+    } catch {
+      // ignore
+    }
     setCurrentAdmin(null);
+    setSessionToken(null);
     localStorage.removeItem(ADMIN_STORAGE_KEY);
+    localStorage.removeItem(ADMIN_SESSION_KEY);
   };
 
   const canAccess = (permission: keyof AdminUser['permissions']) => {
@@ -110,7 +247,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const member = members.find((m) => m.email.toLowerCase() === cleanEmail);
 
     if (!member) {
-      return { success: false, message: 'No registered member found with this email. Please check spelling or enroll in an internship.' };
+      return {
+        success: false,
+        message: 'No registered member found with this email. Please check spelling or enroll in an internship.',
+      };
     }
 
     setCurrentMember(member);
@@ -135,10 +275,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentAdmin,
     isAdminLoggedIn: !!currentAdmin,
     isOwner: currentAdmin?.role === 'OWNER',
+    sessionToken,
     currentMember,
     isMemberLoggedIn: !!currentMember,
 
     adminLogin,
+    adminGoogleLogin,
     adminLogout,
     canAccess,
 

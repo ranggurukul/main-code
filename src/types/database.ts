@@ -246,6 +246,10 @@ export interface AdminUser {
   role: AdminRole;
   avatar?: string;
   status: 'active' | 'disabled';
+  isPrimaryOwner?: boolean;
+  authMethod?: 'password' | 'google' | 'both';
+  addedBy?: string;
+  addedAt?: string;
   lastLogin?: string;
   permissions: {
     canManageAdmins: boolean;
@@ -258,6 +262,52 @@ export interface AdminUser {
     canManagePrices: boolean;
   };
   createdAt: string;
+}
+
+export interface AuthorizedAdminEmail {
+  id: string;
+  email: string;
+  name: string;
+  role: AdminRole;
+  isPrimaryOwner: boolean;
+  status: 'active' | 'disabled';
+  addedBy: string;
+  addedAt: string;
+  lastLogin?: string;
+  notes?: string;
+}
+
+export type AdminAuditAction =
+  | 'LOGIN_SUCCESS'
+  | 'LOGIN_FAILED'
+  | 'GOOGLE_AUTH_DENIED'
+  | 'ADMIN_ADDED'
+  | 'ADMIN_REMOVED'
+  | 'STATUS_CHANGED'
+  | 'ROLE_UPDATED'
+  | 'LOGOUT';
+
+export interface AdminAuditLog {
+  id: string;
+  timestamp: string;
+  action: AdminAuditAction;
+  actorEmail: string;
+  targetEmail?: string;
+  details: string;
+  ipAddress?: string;
+  userAgent?: string;
+  status: 'SUCCESS' | 'DENIED' | 'BLOCKED';
+}
+
+export interface AdminSession {
+  token: string;
+  adminId: string;
+  email: string;
+  role: AdminRole;
+  createdAt: string;
+  expiresAt: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface HomepageConfig {
