@@ -933,6 +933,25 @@ const INITIAL_DATABASE: DatabaseSchema = {
 
   adminUsers: [
     {
+      id: 'adm-owner-mann',
+      name: 'Mann Gor (Owner & Sansthan Trustee)',
+      email: 'thematrix2741@gmail.com',
+      role: 'OWNER',
+      status: 'active',
+      lastLogin: '2026-10-31T12:00:00Z',
+      permissions: {
+        canManageAdmins: true,
+        canManageContent: true,
+        canManageMembership: true,
+        canManageWorkshops: true,
+        canManageSubscribers: true,
+        canManageGallery: true,
+        canManageSettings: true,
+        canManagePrices: true,
+      },
+      createdAt: '2025-01-01T00:00:00Z',
+    },
+    {
       id: 'adm-owner',
       name: 'Padmashri Anuradha Sen (Sansthan Trustee)',
       email: 'owner@ranggurukul.org',
@@ -1364,6 +1383,16 @@ export class DatabaseService {
           }
           if (!parsed.siteSettings.logoImage) {
             parsed.siteSettings.logoImage = '/logo.png';
+          }
+        }
+        if (parsed.adminUsers && Array.isArray(parsed.adminUsers)) {
+          const hasOwner = parsed.adminUsers.some((u: any) => u.email?.toLowerCase() === 'owner@ranggurukul.org');
+          if (!hasOwner) {
+            parsed.adminUsers.push(INITIAL_DATABASE.adminUsers.find(u => u.email === 'owner@ranggurukul.org')!);
+          }
+          const hasMann = parsed.adminUsers.some((u: any) => u.email?.toLowerCase() === 'thematrix2741@gmail.com');
+          if (!hasMann) {
+            parsed.adminUsers.unshift(INITIAL_DATABASE.adminUsers[0]);
           }
         }
         // Merge with initial in case new keys were added in schema
