@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  Sparkles,
   Radio,
   Clock,
   Layers,

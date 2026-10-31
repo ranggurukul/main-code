@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
 import { useDatabase } from '../context/DatabaseContext';
-import { Calendar, Clock, MapPin, Users, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const WorkshopsPage: React.FC = () => {
   const { workshops } = useDatabase();

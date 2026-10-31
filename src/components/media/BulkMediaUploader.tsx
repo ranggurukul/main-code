@@ -9,7 +9,6 @@ import {
   Check,
   X,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 import { storageService } from '../../services/storage';
 import { useDatabase } from '../../context/DatabaseContext';

@@ -9,7 +9,6 @@ import {
   Search,
   Filter,
   Layers,
-  Sparkles,
   X,
   CheckCircle2,
   Crop,

@@ -1074,6 +1074,7 @@ const INITIAL_DATABASE: DatabaseSchema = {
 
   siteSettings: {
     sansthanName: 'Rang Gurukul Sansthan',
+    logoImage: '/logo.png',
     tagline: 'Preserving Sacred Lineage • Pioneering Vanguard Indian Theatre',
     contactEmail: 'sansthan@ranggurukul.org',
     contactPhone: '+91 (0135) 289-4401',
@@ -1360,6 +1361,9 @@ export class DatabaseService {
           }
           if (!Array.isArray(parsed.siteSettings.reservationTiers)) {
             parsed.siteSettings.reservationTiers = [...INITIAL_DATABASE.siteSettings.reservationTiers!];
+          }
+          if (!parsed.siteSettings.logoImage) {
+            parsed.siteSettings.logoImage = '/logo.png';
           }
         }
         // Merge with initial in case new keys were added in schema

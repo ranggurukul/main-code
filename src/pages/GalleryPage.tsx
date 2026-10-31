@@ -8,7 +8,6 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Layers,
   Calendar,
   Tag,

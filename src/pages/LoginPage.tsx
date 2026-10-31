@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
 import { useAuth } from '../context/AuthContext';
-import { useDatabase } from '../context/DatabaseContext';
-import { Crown, Lock, ArrowRight, UserCheck, Sparkles, Shield } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { memberLogin, isMemberLoggedIn } = useAuth();
-  const { members } = useDatabase();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -30,21 +28,16 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleQuickLogin = (memberEmail: string) => {
-    const res = memberLogin(memberEmail);
-    if (res.success) {
-      navigate('/member');
-    }
-  };
-
   return (
     <PageTransition>
       <div className="min-h-[85vh] flex items-center justify-center pt-28 pb-16 px-4 sm:px-6 lg:px-12 bg-[#121110]">
         <div className="w-full max-w-md theatre-card p-8 sm:p-10 rounded-2xl border border-[#d4af37]/40 shadow-2xl relative">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#d4af37] mx-auto mb-3">
-              <Crown className="w-6 h-6" />
-            </div>
+            <Link to="/" className="inline-block group mb-3">
+              <div className="w-16 h-16 rounded-full bg-white p-1 border-2 border-[#d4af37]/60 shadow-xl mx-auto overflow-hidden flex items-center justify-center transition-transform group-hover:scale-105">
+                <img src="/logo.png" alt="Rang Gurukul Logo" className="w-full h-full object-contain rounded-full" />
+              </div>
+            </Link>
             <span className="text-[10px] uppercase font-mono tracking-widest text-[#c85a32] block mb-1">
               Sanctum Community
             </span>
@@ -86,29 +79,7 @@ export const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Demo Logins */}
-          <div className="mt-8 pt-6 border-t border-[#2a2622]">
-            <span className="text-[10px] uppercase tracking-wider text-[#9e968b] block mb-2 font-mono">
-              Quick Test Intern Accounts:
-            </span>
-            <div className="space-y-2">
-              {members.slice(0, 2).map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => handleQuickLogin(m.email)}
-                  className="w-full p-2.5 rounded-xl bg-[#1c1a17] border border-[#332f2a] hover:border-[#d4af37]/60 text-left flex items-center justify-between text-xs text-[#d8d0c5] transition-all"
-                >
-                  <div>
-                    <div className="font-semibold text-[#faf7f2]">{m.name}</div>
-                    <div className="text-[10px] text-[#d4af37]">{m.planName} ({m.membershipId})</div>
-                  </div>
-                  <UserCheck className="w-4 h-4 text-[#d4af37]" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-6 text-center text-xs text-[#9e968b]">
+          <div className="mt-8 pt-6 border-t border-[#2a2622] text-center text-xs text-[#9e968b]">
             Not an intern yet?{' '}
             <Link to="/membership" className="text-[#d4af37] underline font-semibold">
               Join Paid Membership

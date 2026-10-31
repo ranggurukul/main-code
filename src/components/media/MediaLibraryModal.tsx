@@ -8,7 +8,6 @@ import {
   Image as ImageIcon,
   Calendar,
   Layers,
-  Sparkles,
   Info,
   Clock,
   Trash2,

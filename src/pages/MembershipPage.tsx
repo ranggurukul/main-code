@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   Crown,
   CheckCircle2,
-  Sparkles,
+  Flame,
   Phone,
   MessageSquare,
   Users,
@@ -269,7 +269,7 @@ export const MembershipPage: React.FC = () => {
 
             <div className="p-8 rounded-2xl bg-[#1c1a17] border border-[#332f2a]">
               <div className="w-10 h-10 rounded-full bg-[#c85a32]/15 border border-[#c85a32]/30 flex items-center justify-center text-[#c85a32] mb-4">
-                <Sparkles className="w-5 h-5" />
+                <Flame className="w-5 h-5" />
               </div>
               <h3 className="font-editorial text-lg text-[#faf7f2] font-bold mb-2">
                 Opportunity to Participate in Acts

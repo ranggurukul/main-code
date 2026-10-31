@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Volume2, VolumeX, Menu, X, Shield, User, Crown, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, Shield, User, Crown } from 'lucide-react';
 import { audioEngine } from '../utils/audioEngine';
 import { useAuth } from '../context/AuthContext';
 
@@ -58,11 +58,12 @@ export const Navbar: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo / Monogram */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-full border border-[#d4af37]/60 bg-[#1e1b18] flex items-center justify-center transition-all duration-300 group-hover:border-[#d4af37] group-hover:shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-              <span className="font-marcellus text-[#d4af37] text-lg font-bold leading-none">
-                रं
-              </span>
-              <div className="absolute inset-0 rounded-full border border-[#c85a32]/40 scale-110 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+            <div className="relative w-11 h-11 rounded-full border border-[#d4af37]/70 bg-white p-0.5 overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:border-[#d4af37] group-hover:shadow-[0_0_16px_rgba(212,175,55,0.45)] group-hover:scale-105 shrink-0 shadow-md">
+              <img
+                src="/logo.png"
+                alt="Rang Gurukul Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-editorial text-lg sm:text-xl font-bold tracking-widest text-[#faf7f2] group-hover:text-[#d4af37] transition-colors leading-tight">
@@ -160,6 +161,19 @@ export const Navbar: React.FC = () => {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-30 pt-20 pb-6 px-6 bg-[#121110]/98 backdrop-blur-2xl xl:hidden overflow-y-auto border-b border-[#332f2a]">
           <div className="flex flex-col space-y-3">
+            <div className="flex items-center gap-3 px-3 py-2 mb-2 border-b border-[#2b2723]">
+              <div className="w-10 h-10 rounded-full border border-[#d4af37]/70 bg-white p-0.5 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+                <img src="/logo.png" alt="Rang Gurukul Logo" className="w-full h-full object-contain rounded-full" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-editorial text-base font-bold tracking-widest text-[#faf7f2]">
+                  RANG GURUKUL
+                </span>
+                <span className="text-[9px] uppercase tracking-[0.2em] text-[#9e968b]">
+                  Sansthan Sanctum
+                </span>
+              </div>
+            </div>
             {navLinks.map((link) => (
               <NavLink
                 key={link.to}

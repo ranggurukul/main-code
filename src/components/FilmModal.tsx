@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Play, Pause, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { X, Play, Pause, Volume2, VolumeX, Flame } from 'lucide-react';
 import { audioEngine } from '../utils/audioEngine';
 
 interface FilmModalProps {
@@ -86,7 +86,7 @@ export const FilmModal: React.FC<FilmModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div className="flex items-center gap-2 text-xs text-[#d4af37]">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Flame className="w-3.5 h-3.5" />
               <span>4K Master Audio</span>
             </div>
           </div>

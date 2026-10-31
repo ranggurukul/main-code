@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, CheckCircle2, User, Clock, ArrowRight } from 'lucide-react';
+import { Flame, CheckCircle2, User, Clock, ArrowRight } from 'lucide-react';
 import { DISCIPLINES_DATA, type Discipline } from '../data/rangData';
 import { useDatabase } from '../context/DatabaseContext';
 
@@ -26,7 +26,7 @@ export const DisciplinesSection: React.FC<DisciplinesSectionProps> = ({ onOpenAp
         {/* Section Header */}
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#d4af37]/30 bg-[#201e1b] text-[#d4af37] text-xs font-semibold uppercase tracking-widest mb-3">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Flame className="w-3.5 h-3.5" />
             Curriculum of the Sansthan
           </div>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-[#faf7f2] font-normal tracking-tight">

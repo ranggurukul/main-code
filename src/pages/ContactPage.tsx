@@ -44,9 +44,19 @@ export const ContactPage: React.FC = () => {
           {/* Left Column: Campus Info & Contact Details */}
           <div className="lg:col-span-5 space-y-8">
             <div className="theatre-card p-8 rounded-2xl border border-[#332f2a] space-y-6">
-              <h3 className="font-editorial text-2xl font-bold text-[#faf7f2]">
-                Sansthan Secretariat
-              </h3>
+              <div className="flex items-center gap-3.5 pb-4 border-b border-[#2b2723]">
+                <div className="w-12 h-12 rounded-full border border-[#d4af37]/70 bg-white p-0.5 overflow-hidden flex items-center justify-center shrink-0 shadow-md">
+                  <img src={siteSettings.logoImage || '/logo.png'} alt="Rang Gurukul Logo" className="w-full h-full object-contain rounded-full" />
+                </div>
+                <div>
+                  <h3 className="font-editorial text-2xl font-bold text-[#faf7f2]">
+                    Sansthan Secretariat
+                  </h3>
+                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#d4af37]">
+                    Official Headquarters
+                  </span>
+                </div>
+              </div>
 
               <div className="space-y-4 text-xs text-[#d8d0c5]">
                 <div className="flex items-start gap-3">

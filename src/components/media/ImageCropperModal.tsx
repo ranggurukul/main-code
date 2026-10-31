@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Crop, Check, RotateCw, ZoomIn, ZoomOut, Sparkles } from 'lucide-react';
+import { X, Crop, Check, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 import { cropImageToWebP } from '../../utils/imageOptimizer';
 
 interface ImageCropperModalProps {

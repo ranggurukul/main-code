@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Sun, Moon, Sparkles, Navigation, Send, CheckCircle2 } from 'lucide-react';
+import { MapPin, Sun, Moon, Flame, Navigation, Send, CheckCircle2 } from 'lucide-react';
 
 export const CampusVisit: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -57,7 +57,7 @@ export const CampusVisit: React.FC = () => {
 
               <div className="theatre-card p-4 rounded-xl border border-[#332f2a]">
                 <div className="flex items-center gap-2.5 text-sm font-semibold text-[#faf7f2] mb-1">
-                  <Sparkles className="w-4 h-4 text-[#d4af37]" />
+                  <Flame className="w-4 h-4 text-[#d4af37]" />
                   <span>The Artisans Guild Courtyard</span>
                 </div>
                 <p className="text-xs text-[#9e968b] leading-relaxed">

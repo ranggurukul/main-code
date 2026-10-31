@@ -8,7 +8,7 @@ import {
   DollarSign,
   Mail,
   ArrowUpRight,
-  Sparkles,
+  Flame,
   TrendingUp,
   Clock,
   Layers,
@@ -158,7 +158,7 @@ export const AdminDashboardView: React.FC<{ onNavigateTab: (tab: string) => void
                 <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400">
                   DISCIPLINES
                 </span>
-                <Sparkles className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                <Flame className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
               </div>
               <div className="text-xl font-bold font-editorial text-white group-hover:text-amber-300 transition-colors">
                 Disciplines of Expression

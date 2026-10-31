@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Play, ArrowUpRight, Sparkles, Calendar, Award } from 'lucide-react';
+import { Play, ArrowUpRight, Flame, Calendar, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TheatreStageCanvas } from './TheatreStageCanvas';
 import { INSTITUTIONAL_FACTS } from '../data/rangData';
@@ -84,7 +84,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenBooking, onOpenF
               to="/membership"
               className="px-6 py-3.5 rounded-full border border-[#d4af37]/40 bg-[#1c1a17]/90 hover:bg-[#25221e] text-[#faf7f2] font-semibold text-xs sm:text-sm uppercase tracking-widest transition-all duration-300 flex items-center gap-2.5 hover:border-[#d4af37]"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
+              <Flame className="w-3.5 h-3.5 text-[#d4af37]" />
               {homepageConfig.heroSecondaryCtaText || 'Join Internship'}
             </Link>
 

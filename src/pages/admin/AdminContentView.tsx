@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDatabase } from '../../context/DatabaseContext';
-import { Image as ImageIcon, Save, CheckCircle2, Sparkles, RefreshCw, Eye } from 'lucide-react';
+import { Image as ImageIcon, Save, CheckCircle2, RefreshCw, Eye } from 'lucide-react';
 import type { HomepageConfig } from '../../types/database';
 import { MediaUploadField } from '../../components/media/MediaUploadField';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HeartHandshake, Check, Sparkles, Shield, Gift } from 'lucide-react';
+import { HeartHandshake, Check, Flame, Shield, Gift } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const PatronageSection: React.FC = () => {
@@ -134,7 +134,7 @@ export const PatronageSection: React.FC = () => {
               <div>
                 {pledgedTier === tier.name ? (
                   <div className="w-full py-3 rounded-full bg-[#201e1b] border border-[#d4af37] text-[#d4af37] text-xs font-semibold uppercase tracking-wider text-center flex items-center justify-center gap-2">
-                    <Sparkles className="w-4 h-4" />
+                    <Flame className="w-4 h-4" />
                     Pledge Registered • Gratitude
                   </div>
                 ) : (

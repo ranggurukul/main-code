@@ -11,7 +11,7 @@ import {
   MapPin,
   Users,
   CheckCircle2,
-  Sparkles,
+  Flame,
   Lock,
   Upload,
   AlertCircle,
@@ -523,7 +523,7 @@ export const WorkshopDetailPage: React.FC = () => {
                     type="submit"
                     className="w-full py-4 px-6 rounded-xl font-editorial font-bold text-sm tracking-wider uppercase text-[#121110] bg-gradient-to-r from-[#d4af37] via-[#f3d068] to-[#d4af37] hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(212,175,55,0.25)]"
                   >
-                    <Sparkles className="w-4 h-4 text-[#121110]" />
+                    <Flame className="w-4 h-4 text-[#121110]" />
                     <span>Proceed to Payment (₹{workshop.price.toLocaleString('en-IN')})</span>
                   </button>
                 </form>

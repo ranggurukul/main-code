@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
 import { ReservationModal } from '../components/ReservationModal';
 import { PRODUCTIONS_DATA, TOUR_DATES } from '../data/rangData';
-import { ArrowLeft, Ticket, Calendar, Award, User, Clock, MapPin, Sparkles } from 'lucide-react';
+import { ArrowLeft, Ticket, Calendar, Award, User, Clock, MapPin } from 'lucide-react';
 import { useDatabase } from '../context/DatabaseContext';
 
 export const EventDetailPage: React.FC = () => {

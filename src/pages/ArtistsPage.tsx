@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
-import { ArrowRight, Award, Sparkles } from 'lucide-react';
+import { ArrowRight, Award } from 'lucide-react';
 
 export interface Artist {
   id: string;

@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Menu,
   X,
-  Sparkles,
+  Flame,
   GraduationCap,
   Calendar,
   BookOpen,
@@ -62,7 +62,7 @@ export const AdminLayout: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'disciplines', label: 'Disciplines', icon: Sparkles },
+    { id: 'disciplines', label: 'Disciplines', icon: Flame },
     { id: 'programs', label: 'Programs', icon: GraduationCap },
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'stories', label: 'Stories', icon: BookOpen },
@@ -88,8 +88,12 @@ export const AdminLayout: React.FC = () => {
           </button>
 
           <Link to="/" target="_blank" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-full border border-amber-500/50 bg-[#221f1c] flex items-center justify-center text-amber-400 font-marcellus font-bold text-sm">
-              रं
+            <div className="w-9 h-9 rounded-full border border-amber-500/50 bg-white p-0.5 overflow-hidden flex items-center justify-center shadow-sm shrink-0 transition-transform group-hover:scale-105">
+              <img
+                src="/logo.png"
+                alt="Rang Gurukul Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
             </div>
             <div>
               <div className="font-editorial text-sm sm:text-base font-bold text-white group-hover:text-amber-400 transition-colors flex items-center gap-1.5">

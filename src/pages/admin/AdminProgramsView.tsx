@@ -16,7 +16,7 @@ import {
   RefreshCw,
   Save,
   Layers,
-  Sparkles,
+  Flame,
   ArrowUp,
   ArrowDown,
   CheckCircle2,
@@ -383,7 +383,7 @@ export const AdminProgramsView: React.FC = () => {
           {/* Quick Notice linking to form options */}
           <div className="p-3.5 rounded-xl bg-[#1c1a17] border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-amber-300">
-              <Sparkles className="w-4 h-4 shrink-0 text-amber-400" />
+              <Flame className="w-4 h-4 shrink-0 text-amber-400" />
               <span>
                 Want to customize the <strong>Selected Intensive</strong>, <strong>Artistic Discipline</strong>, or <strong>Prior Training</strong> dropdown choices for the student application form?
               </span>
@@ -652,7 +652,7 @@ export const AdminProgramsView: React.FC = () => {
                   DROPDOWN 2 • APPLICANT CHOICES
                 </span>
                 <h3 className="text-lg font-bold font-editorial text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <Flame className="w-4 h-4 text-amber-400" />
                   <span>Artistic Discipline Options</span>
                 </h3>
                 <p className="text-xs text-[#9e968b] mt-0.5">

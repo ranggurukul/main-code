@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, CheckCircle2, CreditCard, Smartphone, Lock, Sparkles, Loader2 } from 'lucide-react';
+import { X, ShieldCheck, CheckCircle2, CreditCard, Smartphone, Lock, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useDatabase } from '../context/DatabaseContext';
 
@@ -235,7 +235,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-[#121110]" />
+                  <ShieldCheck className="w-4 h-4 text-[#121110]" />
                   <span>Authorize ₹{amount.toLocaleString('en-IN')} & Confirm</span>
                 </>
               )}

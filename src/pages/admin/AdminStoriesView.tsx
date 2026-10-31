@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDatabase } from '../../context/DatabaseContext';
-import { Plus, Edit2, Trash2, Search, BookOpen, Clock, Calendar, User, Sparkles, X, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, BookOpen, Clock, Calendar, User, X, Check } from 'lucide-react';
 import type { Story } from '../../types/database';
 import { MediaUploadField } from '../../components/media/MediaUploadField';
 

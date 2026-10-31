@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Music, Hand, Compass, Volume2, ShieldAlert } from 'lucide-react';
+import { Music, Hand, Compass, Volume2, ShieldAlert, Flame } from 'lucide-react';
 import { NAVARASA_DATA, type Rasa } from '../data/rangData';
 import { audioEngine } from '../utils/audioEngine';
 
@@ -28,7 +28,7 @@ export const NavarasaExplorer: React.FC = () => {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#d4af37]/30 bg-[#201e1b]/80 backdrop-blur-md text-[#d4af37] text-xs font-semibold uppercase tracking-widest mb-4">
-            <Sparkles className="w-3.5 h-3.5" />
+            <Flame className="w-3.5 h-3.5" />
             The Nine Archetypal Essences
           </div>
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-[#faf7f2] font-normal tracking-tight">

@@ -4,7 +4,7 @@ import { PageTransition } from '../components/PageTransition';
 import { PaymentModal } from '../components/PaymentModal';
 import { useDatabase } from '../context/DatabaseContext';
 import { useAuth } from '../context/AuthContext';
-import { Crown, CheckCircle2, ArrowLeft, ArrowRight, ShieldCheck, Sparkles, Lock } from 'lucide-react';
+import { Crown, CheckCircle2, ArrowLeft, ArrowRight, ShieldCheck, Lock } from 'lucide-react';
 
 export const MembershipDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

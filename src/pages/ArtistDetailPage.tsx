@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
 import { ARTISTS_LIST } from './ArtistsPage';
-import { ArrowLeft, Award, Sparkles, BookOpen } from 'lucide-react';
+import { ArrowLeft, Award, BookOpen } from 'lucide-react';
 
 export const ArtistDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

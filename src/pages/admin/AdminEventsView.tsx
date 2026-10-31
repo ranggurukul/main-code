@@ -8,7 +8,7 @@ import {
   Calendar,
   MapPin,
   Ticket,
-  Sparkles,
+  Flame,
   X,
   Check,
   Users,
@@ -439,7 +439,7 @@ export const AdminEventsView: React.FC = () => {
               : 'border-transparent text-[#9e968b] hover:text-white hover:bg-[#1a1816]'
           }`}
         >
-          <Sparkles className="w-4 h-4" />
+          <Flame className="w-4 h-4" />
           <span>Productions Repertoire ({events.length})</span>
         </button>
 

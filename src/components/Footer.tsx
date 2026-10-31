@@ -87,11 +87,15 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-14 border-b border-[#25221e]">
           {/* Brand & Crest */}
           <div className="col-span-2">
-            <Link to="/" className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full border border-[#d4af37] bg-[#1a1816] flex items-center justify-center text-[#d4af37] font-marcellus font-bold">
-                रं
+            <Link to="/" className="flex items-center gap-3 mb-3 group">
+              <div className="w-10 h-10 rounded-full border border-[#d4af37] bg-white p-0.5 overflow-hidden flex items-center justify-center shadow-md shrink-0 transition-transform group-hover:scale-105">
+                <img
+                  src={siteSettings.logoImage || '/logo.png'}
+                  alt="Rang Gurukul Logo"
+                  className="w-full h-full object-contain rounded-full"
+                />
               </div>
-              <span className="font-editorial text-xl font-bold tracking-widest text-[#faf7f2]">
+              <span className="font-editorial text-xl font-bold tracking-widest text-[#faf7f2] group-hover:text-[#d4af37] transition-colors">
                 RANG GURUKUL
               </span>
             </Link>

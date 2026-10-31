@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Ticket, QrCode, Sparkles } from 'lucide-react';
+import { X, Ticket, QrCode, Flame } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { PRODUCTIONS_DATA } from '../data/rangData';
 import { useDatabase } from '../context/DatabaseContext';
@@ -123,7 +123,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
           /* Confirmation Pass Screen */
           <div className="text-center py-4 space-y-6">
             <div className="w-16 h-16 rounded-full bg-[#d4af37]/10 border border-[#d4af37] flex items-center justify-center mx-auto text-[#d4af37]">
-              <Sparkles className="w-8 h-8 animate-spin" />
+              <Flame className="w-8 h-8" />
             </div>
 
             <div>

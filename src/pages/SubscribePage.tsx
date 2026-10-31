@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageTransition } from '../components/PageTransition';
 import { useDatabase } from '../context/DatabaseContext';
-import { Mail, CheckCircle2, Sparkles, Bell, ArrowRight, ShieldCheck, UserCheck, XCircle } from 'lucide-react';
+import { Mail, CheckCircle2, Flame, Bell, ArrowRight, ShieldCheck, UserCheck, XCircle } from 'lucide-react';
 
 export const SubscribePage: React.FC = () => {
   const { subscribe, unsubscribe } = useDatabase();
@@ -193,7 +193,7 @@ export const SubscribePage: React.FC = () => {
                     type="submit"
                     className="w-full py-4 px-6 rounded-xl font-editorial font-bold text-xs uppercase tracking-wider text-[#121110] bg-gradient-to-r from-[#d4af37] via-[#f3d068] to-[#d4af37] hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
-                    <Sparkles className="w-4 h-4 text-[#121110]" />
+                    <Flame className="w-4 h-4 text-[#121110]" />
                     <span>Confirm Subscription</span>
                   </button>
 

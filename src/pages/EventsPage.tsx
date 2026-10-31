@@ -5,7 +5,7 @@ import { SeasonCalendar } from '../components/SeasonCalendar';
 import { ReservationModal } from '../components/ReservationModal';
 import { ProductionModal } from '../components/ProductionModal';
 import { PRODUCTIONS_DATA, type Production } from '../data/rangData';
-import { Ticket, ArrowRight, Calendar, MapPin, Sparkles } from 'lucide-react';
+import { Ticket, ArrowRight, Calendar, MapPin } from 'lucide-react';
 import { useDatabase } from '../context/DatabaseContext';
 
 export const EventsPage: React.FC = () => {

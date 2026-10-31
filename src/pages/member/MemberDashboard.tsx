@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   Phone,
   MessageSquare,
-  Sparkles,
+  Flame,
   Calendar,
   User,
   LogOut,
@@ -155,21 +155,6 @@ export const MemberDashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Quick Demo Switcher */}
-            {members.length > 1 && (
-              <select
-                onChange={(e) => switchMember(e.target.value)}
-                value={currentMember.id}
-                className="px-3 py-1.5 rounded-xl bg-[#201e1b] border border-[#3a3530] text-[#faf7f2] text-xs focus:outline-none"
-                title="Switch test intern account"
-              >
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    Demo: {m.name} ({m.planName.split(' ')[0]} {m.planName.split(' ')[1]})
-                  </option>
-                ))}
-              </select>
-            )}
 
             <button
               onClick={() => {
@@ -189,7 +174,7 @@ export const MemberDashboard: React.FC = () => {
           {[
             { id: 'membership', label: 'My Membership', icon: Crown },
             { id: 'contact', label: 'Direct Desk & WhatsApp', icon: Phone },
-            { id: 'participation', label: 'Stage Acts Participation', icon: Sparkles },
+            { id: 'participation', label: 'Stage Acts Participation', icon: Flame },
             { id: 'workshops', label: 'My Workshops', icon: Ticket },
             { id: 'profile', label: 'Intern Profile', icon: User },
           ].map((tab) => {
@@ -224,8 +209,12 @@ export const MemberDashboard: React.FC = () => {
                 <div className="theatre-card p-8 rounded-3xl border-2 border-[#d4af37]/60 shadow-[0_0_35px_rgba(212,175,55,0.15)] relative overflow-hidden bg-gradient-to-br from-[#24201c] via-[#1a1816] to-[#121110]">
                   <div className="flex items-center justify-between pb-6 border-b border-[#d4af37]/30">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full border border-[#d4af37] bg-[#1e1b18] flex items-center justify-center text-[#d4af37] font-marcellus font-bold">
-                        रं
+                      <div className="w-11 h-11 rounded-full border border-[#d4af37] bg-white p-0.5 overflow-hidden flex items-center justify-center shadow-md shrink-0">
+                        <img
+                          src={siteSettings?.logoImage || '/logo.png'}
+                          alt="Rang Gurukul Logo"
+                          className="w-full h-full object-contain rounded-full"
+                        />
                       </div>
                       <div>
                         <div className="font-editorial text-lg font-bold text-[#faf7f2]">

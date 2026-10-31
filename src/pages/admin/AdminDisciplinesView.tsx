@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDatabase } from '../../context/DatabaseContext';
-import { Plus, Edit2, Trash2, Search, Sparkles, X, Check, BookOpen, Layers } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Flame, X, Check, BookOpen, Layers } from 'lucide-react';
 import type { Discipline } from '../../types/database';
 import { MediaUploadField } from '../../components/media/MediaUploadField';
 
@@ -186,7 +186,7 @@ export const AdminDisciplinesView: React.FC = () => {
 
       {filteredDisciplines.length === 0 && (
         <div className="text-center py-16 bg-[#141210] border border-[#2b2723] rounded-2xl p-8">
-          <Sparkles className="w-8 h-8 text-amber-400/50 mx-auto mb-3" />
+          <Flame className="w-8 h-8 text-amber-400/50 mx-auto mb-3" />
           <p className="text-white font-medium text-sm">No disciplines match your search</p>
           <p className="text-xs text-[#787168] mt-1">Try adjusting the filter or add a new discipline above.</p>
         </div>
