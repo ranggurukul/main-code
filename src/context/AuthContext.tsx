@@ -18,6 +18,7 @@ interface AuthContextValue {
   canAccess: (permission: keyof AdminUser['permissions']) => boolean;
 
   memberLogin: (email: string, passwordOrPin?: string) => { success: boolean; message: string; member?: MemberUser };
+  loginMemberDirect: (member: MemberUser) => void;
   memberLogout: () => void;
   switchMember: (memberId: string) => void;
 }
@@ -62,7 +63,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const stored = localStorage.getItem(MEMBER_STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed?.id === 'mem-1' || parsed?.email?.toLowerCase() === 'member@ranggurukul.org') {
+          localStorage.removeItem(MEMBER_STORAGE_KEY);
+          return null;
+        }
+        return parsed;
       }
     } catch {
       // ignore
@@ -260,6 +266,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true, message: `Welcome to the Inner Sanctum, ${member.name}.`, member };
   };
 
+  const loginMemberDirect = (member: MemberUser) => {
+    setCurrentMember(member);
+    localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(member));
+  };
+
   const memberLogout = () => {
     setCurrentMember(null);
     localStorage.removeItem(MEMBER_STORAGE_KEY);
@@ -287,6 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     canAccess,
 
     memberLogin,
+    loginMemberDirect,
     memberLogout,
     switchMember,
   };

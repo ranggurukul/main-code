@@ -211,27 +211,6 @@ const INITIAL_DATABASE: DatabaseSchema = {
 
   members: [
     {
-      id: 'mem-1',
-      membershipId: 'RG-M-2026-8492',
-      name: 'Aarav Shastri',
-      email: 'member@ranggurukul.org',
-      phone: '+91 98450 12891',
-      planId: 'plan-3yr',
-      planName: '3 Years Rasika Vanguard',
-      startDate: '2026-02-10T10:00:00Z',
-      expiryDate: '2029-02-10T10:00:00Z',
-      status: 'active',
-      amountPaid: 6999,
-      paymentMethod: 'Razorpay UPI (GooglePay)',
-      transactionId: 'pay_RG20260210A849',
-      address: '42 Heritage Enclave, Civil Lines',
-      city: 'New Delhi',
-      bio: 'Lifelong classical theatre enthusiast and amateur tabla player trained in Farrukhabad gharana.',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-      notificationPreferences: { email: true, whatsapp: true },
-      createdAt: '2026-02-10T10:00:00Z',
-    },
-    {
       id: 'mem-2',
       membershipId: 'RG-M-2026-3108',
       name: 'Dr. Meenakshi Sundaram',
@@ -293,20 +272,7 @@ const INITIAL_DATABASE: DatabaseSchema = {
     },
   ],
 
-  participationRequests: [
-    {
-      id: 'req-1',
-      memberId: 'mem-1',
-      memberName: 'Aarav Shastri',
-      memberEmail: 'member@ranggurukul.org',
-      opportunityId: 'part-1',
-      opportunityTitle: 'Chorus & Chhau Movement Ensemble (Kurukshetra Act)',
-      statement: 'I have practiced basic Kalaripayattu and would love to commit 2 weeks to the warrior chorus.',
-      experienceNotes: '3 years training in physical theatre; comfortable with demanding choreography.',
-      status: 'Audition Scheduled',
-      appliedAt: '2026-02-14T09:30:00Z',
-    },
-  ],
+  participationRequests: [],
 
   subscribers: [
     {
@@ -1597,6 +1563,17 @@ export class DatabaseService {
         }
         if (parsed.paymentConfig?.razorpayKeyId === 'rzp_test_RangGurukul2026Live') {
           parsed.paymentConfig.razorpayKeyId = 'rzp_test_U55Trtrut503Is';
+        }
+        // Permanently purge default demo member Aarav Shastri
+        if (Array.isArray(parsed.members)) {
+          parsed.members = parsed.members.filter(
+            (m: any) => m.id !== 'mem-1' && m.email?.toLowerCase() !== 'member@ranggurukul.org'
+          );
+        }
+        if (Array.isArray(parsed.participationRequests)) {
+          parsed.participationRequests = parsed.participationRequests.filter(
+            (r: any) => r.memberId !== 'mem-1' && r.memberEmail?.toLowerCase() !== 'member@ranggurukul.org'
+          );
         }
         // Merge with initial in case new keys were added in schema
         this.cache = { ...INITIAL_DATABASE, ...parsed };

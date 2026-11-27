@@ -9,7 +9,7 @@ import { Crown, CheckCircle2, ArrowLeft, ArrowRight, ShieldCheck, Lock } from 'l
 export const MembershipDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { membershipPlans, createMemberAccount } = useDatabase();
-  const { currentMember } = useAuth();
+  const { currentMember, loginMemberDirect } = useAuth();
   const navigate = useNavigate();
 
   const plan = membershipPlans.find((p) => p.id === id) || membershipPlans[0];
@@ -31,7 +31,7 @@ export const MembershipDetailPage: React.FC = () => {
 
   const handlePaymentSuccess = ({ transactionId, paymentMethod }: { transactionId: string; paymentMethod: string }) => {
     setIsPaymentOpen(false);
-    createMemberAccount({
+    const newMember = createMemberAccount({
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
@@ -41,6 +41,7 @@ export const MembershipDetailPage: React.FC = () => {
       address: formData.address,
       city: formData.city,
     });
+    loginMemberDirect(newMember);
     navigate('/member');
   };
 

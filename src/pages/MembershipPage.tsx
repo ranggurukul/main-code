@@ -21,7 +21,7 @@ import type { MembershipPlan } from '../types/database';
 
 export const MembershipPage: React.FC = () => {
   const { membershipPlans, createMemberAccount } = useDatabase();
-  const { isMemberLoggedIn, currentMember } = useAuth();
+  const { isMemberLoggedIn, currentMember, loginMemberDirect } = useAuth();
   const navigate = useNavigate();
 
   // Active plans only
@@ -87,6 +87,7 @@ export const MembershipPage: React.FC = () => {
       city: formData.city,
     });
 
+    loginMemberDirect(newMember);
     setPurchasedMember(newMember);
   };
 
