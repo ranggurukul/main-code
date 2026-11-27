@@ -51,16 +51,22 @@ interface DatabaseContextValue {
 
   // Admin Access Management Actions
   addAuthorizedEmail: (
-    params: { email: string; name: string; role: AdminUser['role']; notes?: string },
+    params: { email: string; name: string; role: AdminUser['role']; notes?: string; password?: string },
     actorEmail: string
-  ) => { success: boolean; message: string; record?: AuthorizedAdminEmail };
+  ) => Promise<{ success: boolean; message: string; record?: AuthorizedAdminEmail }>;
   removeAuthorizedEmail: (idOrEmail: string, actorEmail: string) => { success: boolean; message: string };
   toggleAuthorizedEmailStatus: (id: string, actorEmail: string) => { success: boolean; message: string };
+  setAdminPassword: (
+    params: { targetEmail: string; newPassword: string; currentPassword?: string },
+    actorEmail: string
+  ) => Promise<{ success: boolean; message: string }>;
+  hasPasswordSet: (email: string) => boolean;
   getAdminAuditLogs: () => AdminAuditLog[];
   addAdminAuditLog: (log: Omit<AdminAuditLog, 'id' | 'timestamp'>) => AdminAuditLog;
   verifyAdminAccess: (
     email: string,
     method: 'google' | 'password',
+    password?: string,
     ip?: string,
     userAgent?: string
   ) => ReturnType<typeof dbService.verifyAdminAccess>;
@@ -374,8 +380,8 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setDb({ ...dbService.getSnapshot() });
       return res;
     },
-    addAuthorizedEmail: (params, actorEmail) => {
-      const res = dbService.addAuthorizedEmail(params, actorEmail);
+    addAuthorizedEmail: async (params, actorEmail) => {
+      const res = await dbService.addAuthorizedEmail(params, actorEmail);
       setDb({ ...dbService.getSnapshot() });
       return res;
     },
@@ -389,14 +395,20 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setDb({ ...dbService.getSnapshot() });
       return res;
     },
+    setAdminPassword: async (params, actorEmail) => {
+      const res = await dbService.setAdminPassword(params, actorEmail);
+      setDb({ ...dbService.getSnapshot() });
+      return res;
+    },
+    hasPasswordSet: (email) => dbService.hasPasswordSet(email),
     getAdminAuditLogs: () => dbService.getAdminAuditLogs(),
     addAdminAuditLog: (log) => {
       const res = dbService.addAdminAuditLog(log);
       setDb({ ...dbService.getSnapshot() });
       return res;
     },
-    verifyAdminAccess: (email, method, ip, userAgent) => {
-      const res = dbService.verifyAdminAccess(email, method, ip, userAgent);
+    verifyAdminAccess: async (email, method, password, ip, userAgent) => {
+      const res = await dbService.verifyAdminAccess(email, method, password, ip, userAgent);
       setDb({ ...dbService.getSnapshot() });
       return res;
     },

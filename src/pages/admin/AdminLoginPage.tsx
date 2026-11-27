@@ -12,6 +12,7 @@ export const AdminLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Modals for strict policy messages
@@ -35,26 +36,31 @@ export const AdminLoginPage: React.FC = () => {
   }
 
   // 1. Password Login Handler
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setErrorMsg('');
+    setIsPasswordLoading(true);
 
-    const res = adminLogin(email, password);
-    if (res.success) {
-      navigate('/admin');
-    } else {
-      if (res.errorType === 'NOT_AUTHORIZED') {
-        setDeniedModal({
-          isOpen: true,
-          title: 'Permission Denied',
-          message:
-            'This account is not authorized to access the Rang Gurukul Admin Panel. Only administrators authorized by the primary owner may log in.',
-          emailAttempted: email,
-        });
+    try {
+      const res = await adminLogin(email, password);
+      if (res.success) {
+        navigate('/admin');
       } else {
-        setErrorMsg(res.message);
+        if (res.errorType === 'NOT_AUTHORIZED') {
+          setDeniedModal({
+            isOpen: true,
+            title: 'Permission Denied',
+            message:
+              'This account is not authorized to access the Rang Gurukul Admin Panel. Only administrators authorized by the primary owner may log in.',
+            emailAttempted: email,
+          });
+        } else {
+          setErrorMsg(res.message);
+        }
       }
+    } finally {
+      setIsPasswordLoading(false);
     }
   };
 
@@ -189,7 +195,7 @@ export const AdminLoginPage: React.FC = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="owner@ranggurukul.org"
+              placeholder="ranggurukul@gmail.com"
               className="w-full px-4 py-3 rounded-xl bg-[#201e1b] border border-[#3a3530] text-[#faf7f2] text-xs focus:border-amber-400 focus:outline-none placeholder:text-[#555]"
             />
           </div>
@@ -216,10 +222,11 @@ export const AdminLoginPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3.5 px-6 rounded-xl font-editorial font-bold text-xs uppercase tracking-wider text-black bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+            disabled={isPasswordLoading}
+            className="w-full py-3.5 px-6 rounded-xl font-editorial font-bold text-xs uppercase tracking-wider text-black bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer disabled:opacity-60"
           >
             <Lock className="w-3.5 h-3.5" />
-            <span>Authenticate Session</span>
+            <span>{isPasswordLoading ? 'Verifying...' : 'Authenticate Session'}</span>
           </button>
         </form>
 
@@ -338,17 +345,10 @@ export const AdminLoginPage: React.FC = () => {
                   <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       type="button"
-                      onClick={() => handleGoogleSignIn('thematrix2741@gmail.com')}
+                      onClick={() => handleGoogleSignIn('ranggurukul@gmail.com')}
                       className="px-2.5 py-1.5 rounded-lg bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-[10px] hover:brightness-110"
                     >
-                      Test: Owner (thematrix2741@gmail.com)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleGoogleSignIn('owner@ranggurukul.org')}
-                      className="px-2.5 py-1.5 rounded-lg bg-emerald-950 border border-emerald-500/40 text-emerald-300 text-[10px] hover:brightness-110"
-                    >
-                      Test: Owner (owner@ranggurukul.org)
+                      Test: Primary Owner (ranggurukul@gmail.com)
                     </button>
                     <button
                       type="button"

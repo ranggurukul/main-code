@@ -42,8 +42,7 @@ const apiDevMiddlewarePlugin = () => ({
             const { email, authMethod } = body || {};
             const cleanEmail = (email || '').trim().toLowerCase();
             const authorized = [
-              'thematrix2741@gmail.com',
-              'owner@ranggurukul.org',
+              'ranggurukul@gmail.com',
               'superadmin@ranggurukul.org',
               'workshops@ranggurukul.org',
               'content@ranggurukul.org',
@@ -80,7 +79,7 @@ const apiDevMiddlewarePlugin = () => ({
                 success: true,
                 message: 'Access granted.',
                 sessionToken: 'rg_dev_sess_' + Date.now(),
-                isOwner: cleanEmail === 'thematrix2741@gmail.com' || cleanEmail === 'owner@ranggurukul.org',
+                isOwner: cleanEmail === 'ranggurukul@gmail.com',
               })
             );
             return;
@@ -126,7 +125,7 @@ const apiDevMiddlewarePlugin = () => ({
 
           const { actorEmail, action, targetEmail } = body || {};
           const cleanActor = (actorEmail || '').trim().toLowerCase();
-          const owners = ['thematrix2741@gmail.com', 'owner@ranggurukul.org'];
+          const owners = ['ranggurukul@gmail.com'];
 
           if (req.method === 'POST') {
             if (!owners.includes(cleanActor)) {

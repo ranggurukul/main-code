@@ -285,6 +285,7 @@ export type AdminAuditAction =
   | 'ADMIN_REMOVED'
   | 'STATUS_CHANGED'
   | 'ROLE_UPDATED'
+  | 'PASSWORD_UPDATED'
   | 'LOGOUT';
 
 export interface AdminAuditLog {

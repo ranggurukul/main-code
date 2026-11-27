@@ -26,6 +26,11 @@ import type {
   TourDate,
 } from '../types/database';
 import { DISCIPLINES_DATA, PRODUCTIONS_DATA, ACADEMY_PROGRAMS, TOUR_DATES } from '../data/rangData';
+import { hashPassword, verifyPassword } from '../utils/passwordCrypto';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { firestore } from './firebase';
+
+export const PRIMARY_OWNER_EMAIL = 'ranggurukul@gmail.com';
 
 export interface DatabaseSchema {
   membershipPlans: MembershipPlan[];
@@ -41,6 +46,7 @@ export interface DatabaseSchema {
   mediaLibrary: MediaItem[];
   adminUsers: AdminUser[];
   authorizedAdminEmails: AuthorizedAdminEmail[];
+  adminCredentials: Record<string, string>;
   adminAuditLogs: AdminAuditLog[];
   adminSessions: AdminSession[];
   homepageConfig: HomepageConfig;
@@ -939,32 +945,13 @@ const INITIAL_DATABASE: DatabaseSchema = {
 
   adminUsers: [
     {
-      id: 'adm-owner-mann',
-      name: 'Mann Gor (Owner & Sansthan Trustee)',
-      email: 'thematrix2741@gmail.com',
+      id: 'adm-owner-ranggurukul',
+      name: 'Rang Gurukul (Primary Owner)',
+      email: 'ranggurukul@gmail.com',
       role: 'OWNER',
+      isPrimaryOwner: true,
       status: 'active',
       lastLogin: '2026-10-31T12:00:00Z',
-      permissions: {
-        canManageAdmins: true,
-        canManageContent: true,
-        canManageMembership: true,
-        canManageWorkshops: true,
-        canManageSubscribers: true,
-        canManageGallery: true,
-        canManageSettings: true,
-        canManagePrices: true,
-      },
-      createdAt: '2025-01-01T00:00:00Z',
-    },
-    {
-      id: 'adm-owner',
-      name: 'Padmashri Anuradha Sen (Sansthan Trustee)',
-      email: 'owner@ranggurukul.org',
-      role: 'OWNER',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
-      status: 'active',
-      lastLogin: '2026-10-01T08:00:00Z',
       permissions: {
         canManageAdmins: true,
         canManageContent: true,
@@ -1077,28 +1064,16 @@ const INITIAL_DATABASE: DatabaseSchema = {
 
   authorizedAdminEmails: [
     {
-      id: 'auth-email-mann',
-      email: 'thematrix2741@gmail.com',
-      name: 'Mann Gor (Owner & Sansthan Trustee)',
+      id: 'auth-email-ranggurukul',
+      email: 'ranggurukul@gmail.com',
+      name: 'Rang Gurukul (Primary Owner)',
       role: 'OWNER',
       isPrimaryOwner: true,
       status: 'active',
       addedBy: 'Initial System Environment Config',
       addedAt: '2025-01-01T00:00:00Z',
       lastLogin: '2026-10-31T12:00:00Z',
-      notes: 'Primary Website Owner & Sansthan Trustee',
-    },
-    {
-      id: 'auth-email-owner',
-      email: 'owner@ranggurukul.org',
-      name: 'Padmashri Anuradha Sen (Sansthan Trustee)',
-      role: 'OWNER',
-      isPrimaryOwner: true,
-      status: 'active',
-      addedBy: 'Initial System Environment Config',
-      addedAt: '2025-01-01T00:00:00Z',
-      lastLogin: '2026-10-01T08:00:00Z',
-      notes: 'Sansthan Trustee & Artistic Director',
+      notes: 'Sole Primary Website Owner & Sansthan Trustee',
     },
     {
       id: 'auth-email-super',
@@ -1107,7 +1082,7 @@ const INITIAL_DATABASE: DatabaseSchema = {
       role: 'SUPER_ADMIN',
       isPrimaryOwner: false,
       status: 'active',
-      addedBy: 'owner@ranggurukul.org',
+      addedBy: 'ranggurukul@gmail.com',
       addedAt: '2025-02-01T00:00:00Z',
       lastLogin: '2026-09-30T16:20:00Z',
       notes: 'Executive Administration & Systems',
@@ -1119,7 +1094,7 @@ const INITIAL_DATABASE: DatabaseSchema = {
       role: 'WORKSHOP_ADMIN',
       isPrimaryOwner: false,
       status: 'active',
-      addedBy: 'owner@ranggurukul.org',
+      addedBy: 'ranggurukul@gmail.com',
       addedAt: '2025-04-10T00:00:00Z',
       lastLogin: '2026-10-01T06:15:00Z',
       notes: 'Academy Registrar',
@@ -1131,7 +1106,7 @@ const INITIAL_DATABASE: DatabaseSchema = {
       role: 'CONTENT_ADMIN',
       isPrimaryOwner: false,
       status: 'active',
-      addedBy: 'owner@ranggurukul.org',
+      addedBy: 'ranggurukul@gmail.com',
       addedAt: '2025-05-15T00:00:00Z',
       lastLogin: '2026-09-28T11:40:00Z',
       notes: 'Dramaturgy Head & Archivist',
@@ -1143,7 +1118,7 @@ const INITIAL_DATABASE: DatabaseSchema = {
       role: 'MEMBERSHIP_ADMIN',
       isPrimaryOwner: false,
       status: 'active',
-      addedBy: 'owner@ranggurukul.org',
+      addedBy: 'ranggurukul@gmail.com',
       addedAt: '2025-06-01T00:00:00Z',
       lastLogin: '2026-09-25T14:10:00Z',
       notes: 'Internship Coordinator',
@@ -1155,28 +1130,22 @@ const INITIAL_DATABASE: DatabaseSchema = {
       role: 'COMMUNICATION_ADMIN',
       isPrimaryOwner: false,
       status: 'active',
-      addedBy: 'owner@ranggurukul.org',
+      addedBy: 'ranggurukul@gmail.com',
       addedAt: '2025-07-20T00:00:00Z',
       lastLogin: '2026-09-29T10:00:00Z',
       notes: 'Communications Officer',
     },
   ],
 
+  adminCredentials: {},
+
   adminAuditLogs: [
     {
       id: 'audit-log-init-1',
       timestamp: '2026-10-31T12:00:00Z',
       action: 'LOGIN_SUCCESS',
-      actorEmail: 'thematrix2741@gmail.com',
-      details: 'Primary Owner authenticated session via Password / Passcode',
-      status: 'SUCCESS',
-    },
-    {
-      id: 'audit-log-init-2',
-      timestamp: '2026-10-30T09:15:00Z',
-      action: 'LOGIN_SUCCESS',
-      actorEmail: 'owner@ranggurukul.org',
-      details: 'Sansthan Trustee authenticated session via Password',
+      actorEmail: 'ranggurukul@gmail.com',
+      details: 'Primary Owner authenticated session via Google OAuth',
       status: 'SUCCESS',
     },
     {
@@ -1438,9 +1407,90 @@ const INITIAL_DATABASE: DatabaseSchema = {
 export class DatabaseService {
   private static instance: DatabaseService;
   private cache: DatabaseSchema | null = null;
+  private isApplyingRemote = false;
+  private firestoreSyncStarted = false;
+  private cloudSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   private constructor() {
     this.ensureInitialized();
+    this.initFirestoreSync();
+  }
+
+  private initFirestoreSync(): void {
+    // Only connect to Cloud Firestore in real browser environments
+    if (
+      this.firestoreSyncStarted ||
+      typeof window === 'undefined' ||
+      typeof document === 'undefined'
+    ) {
+      return;
+    }
+    this.firestoreSyncStarted = true;
+
+    try {
+      const dbDocRef = doc(firestore, 'rang_gurukul', 'database');
+      onSnapshot(
+        dbDocRef,
+        (snap) => {
+          if (snap.exists()) {
+            const remoteData = snap.data() as Partial<DatabaseSchema>;
+            this.isApplyingRemote = true;
+            try {
+              const merged: DatabaseSchema = {
+                ...INITIAL_DATABASE,
+                ...remoteData,
+              };
+              // Always enforce ranggurukul@gmail.com as sole Primary Owner
+              merged.adminUsers = (merged.adminUsers || []).filter(
+                (u) =>
+                  u.email?.toLowerCase() !== 'owner@ranggurukul.org' &&
+                  u.email?.toLowerCase() !== 'thematrix2741@gmail.com'
+              );
+              if (!merged.adminUsers.some((u) => u.email?.toLowerCase() === PRIMARY_OWNER_EMAIL)) {
+                merged.adminUsers.unshift(INITIAL_DATABASE.adminUsers[0]);
+              }
+              merged.authorizedAdminEmails = (merged.authorizedAdminEmails || []).filter(
+                (u) =>
+                  u.email?.toLowerCase() !== 'owner@ranggurukul.org' &&
+                  u.email?.toLowerCase() !== 'thematrix2741@gmail.com'
+              );
+              if (
+                !merged.authorizedAdminEmails.some(
+                  (u) => u.email?.toLowerCase() === PRIMARY_OWNER_EMAIL
+                )
+              ) {
+                merged.authorizedAdminEmails.unshift(INITIAL_DATABASE.authorizedAdminEmails[0]);
+              }
+              if (!merged.adminCredentials || typeof merged.adminCredentials !== 'object') {
+                merged.adminCredentials = {};
+              }
+
+              this.cache = merged;
+              this.syncGalleryWithMediaLibrary(this.cache);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(this.cache));
+              window.dispatchEvent(
+                new CustomEvent(DB_CHANGE_EVENT, {
+                  detail: { ...this.cache, mediaLibrary: [...(this.cache.mediaLibrary || [])] },
+                })
+              );
+            } finally {
+              this.isApplyingRemote = false;
+            }
+          } else if (this.cache) {
+            // Seed Firestore on first run if database document doesn't exist yet
+            const payload = JSON.parse(JSON.stringify(this.cache));
+            setDoc(dbDocRef, payload, { merge: true }).catch(() => {
+              // Silent fallback to localStorage if Firestore rules/billing aren't ready yet
+            });
+          }
+        },
+        () => {
+          // Non-blocking fallback to localStorage if Firestore is offline or rules restrict access
+        }
+      );
+    } catch {
+      // Safe localStorage fallback
+    }
   }
 
   public static getInstance(): DatabaseService {
@@ -1508,26 +1558,36 @@ export class DatabaseService {
           }
         }
         if (parsed.adminUsers && Array.isArray(parsed.adminUsers)) {
-          const hasOwner = parsed.adminUsers.some((u: any) => u.email?.toLowerCase() === 'owner@ranggurukul.org');
-          if (!hasOwner) {
-            parsed.adminUsers.push(INITIAL_DATABASE.adminUsers.find(u => u.email === 'owner@ranggurukul.org')!);
-          }
-          const hasMann = parsed.adminUsers.some((u: any) => u.email?.toLowerCase() === 'thematrix2741@gmail.com');
-          if (!hasMann) {
+          // Enforce ranggurukul@gmail.com as the sole Primary Owner
+          parsed.adminUsers = parsed.adminUsers.filter(
+            (u: any) =>
+              u.email?.toLowerCase() !== 'owner@ranggurukul.org' &&
+              u.email?.toLowerCase() !== 'thematrix2741@gmail.com'
+          );
+          const hasPrimaryOwner = parsed.adminUsers.some(
+            (u: any) => u.email?.toLowerCase() === PRIMARY_OWNER_EMAIL
+          );
+          if (!hasPrimaryOwner) {
             parsed.adminUsers.unshift(INITIAL_DATABASE.adminUsers[0]);
           }
         }
         if (!parsed.authorizedAdminEmails || !Array.isArray(parsed.authorizedAdminEmails) || parsed.authorizedAdminEmails.length === 0) {
           parsed.authorizedAdminEmails = [...INITIAL_DATABASE.authorizedAdminEmails];
         } else {
-          const hasOwner = parsed.authorizedAdminEmails.some((u: any) => u.email?.toLowerCase() === 'owner@ranggurukul.org');
-          if (!hasOwner) {
-            parsed.authorizedAdminEmails.push(INITIAL_DATABASE.authorizedAdminEmails.find(u => u.email === 'owner@ranggurukul.org')!);
-          }
-          const hasMann = parsed.authorizedAdminEmails.some((u: any) => u.email?.toLowerCase() === 'thematrix2741@gmail.com');
-          if (!hasMann) {
+          parsed.authorizedAdminEmails = parsed.authorizedAdminEmails.filter(
+            (u: any) =>
+              u.email?.toLowerCase() !== 'owner@ranggurukul.org' &&
+              u.email?.toLowerCase() !== 'thematrix2741@gmail.com'
+          );
+          const hasPrimaryOwner = parsed.authorizedAdminEmails.some(
+            (u: any) => u.email?.toLowerCase() === PRIMARY_OWNER_EMAIL
+          );
+          if (!hasPrimaryOwner) {
             parsed.authorizedAdminEmails.unshift(INITIAL_DATABASE.authorizedAdminEmails[0]);
           }
+        }
+        if (!parsed.adminCredentials || typeof parsed.adminCredentials !== 'object') {
+          parsed.adminCredentials = {};
         }
         if (!parsed.adminAuditLogs || !Array.isArray(parsed.adminAuditLogs)) {
           parsed.adminAuditLogs = [...INITIAL_DATABASE.adminAuditLogs];
@@ -2354,29 +2414,43 @@ export class DatabaseService {
     return db.authorizedAdminEmails;
   }
 
-  public addAuthorizedEmail(
-    params: { email: string; name: string; role: AdminUser['role']; notes?: string },
+  public async addAuthorizedEmail(
+    params: { email: string; name: string; role: AdminUser['role']; notes?: string; password?: string },
     actorEmail: string
-  ): { success: boolean; message: string; record?: AuthorizedAdminEmail } {
+  ): Promise<{ success: boolean; message: string; record?: AuthorizedAdminEmail }> {
     const db = this.getSnapshot();
     const cleanActor = actorEmail.trim().toLowerCase();
     const actor = db.adminUsers.find((a) => a.email.toLowerCase() === cleanActor && a.status === 'active');
     
     // Strict Owner check
-    if (!actor || actor.role !== 'OWNER') {
+    if (!actor || actor.role !== 'OWNER' || cleanActor !== PRIMARY_OWNER_EMAIL) {
       this.addAdminAuditLog({
         action: 'ADMIN_ADDED',
         actorEmail: cleanActor,
         targetEmail: params.email,
-        details: 'Unauthorized attempt to add admin email blocked: Actor is not an Owner.',
+        details: 'Unauthorized attempt to add admin email blocked: Actor is not the Primary Owner.',
         status: 'DENIED',
       });
-      return { success: false, message: 'Permission denied: Only the Primary Website Owner can authorize administrator email addresses.' };
+      return { success: false, message: 'Permission denied: Only the Primary Website Owner (ranggurukul@gmail.com) can authorize administrator email addresses.' };
     }
 
     const cleanEmail = params.email.trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
       return { success: false, message: 'Invalid email address format.' };
+    }
+
+    if (params.role === 'OWNER' && cleanEmail !== PRIMARY_OWNER_EMAIL) {
+      return {
+        success: false,
+        message: `The OWNER role is strictly reserved for ${PRIMARY_OWNER_EMAIL}. Please assign SUPER_ADMIN or another staff role.`,
+      };
+    }
+
+    if (params.password && params.password.length < 8) {
+      return {
+        success: false,
+        message: 'Administrator password must be at least 8 characters long.',
+      };
     }
 
     if (!db.authorizedAdminEmails) db.authorizedAdminEmails = [];
@@ -2385,7 +2459,7 @@ export class DatabaseService {
       return { success: false, message: `Email ${cleanEmail} is already registered on the authorized list.` };
     }
 
-    const isPrimary = params.role === 'OWNER';
+    const isPrimary = params.role === 'OWNER' && cleanEmail === PRIMARY_OWNER_EMAIL;
     const newAuthRecord: AuthorizedAdminEmail = {
       id: 'auth-email-' + Date.now(),
       email: cleanEmail,
@@ -2412,14 +2486,14 @@ export class DatabaseService {
       };
     } else {
       const defaultPermissions = {
-        canManageAdmins: params.role === 'OWNER',
+        canManageAdmins: isPrimary,
         canManageContent: ['OWNER', 'SUPER_ADMIN', 'CONTENT_ADMIN'].includes(params.role),
         canManageMembership: ['OWNER', 'SUPER_ADMIN', 'MEMBERSHIP_ADMIN'].includes(params.role),
         canManageWorkshops: ['OWNER', 'SUPER_ADMIN', 'WORKSHOP_ADMIN'].includes(params.role),
         canManageSubscribers: ['OWNER', 'SUPER_ADMIN', 'COMMUNICATION_ADMIN'].includes(params.role),
         canManageGallery: ['OWNER', 'SUPER_ADMIN', 'CONTENT_ADMIN'].includes(params.role),
         canManageSettings: ['OWNER', 'SUPER_ADMIN'].includes(params.role),
-        canManagePrices: ['OWNER'].includes(params.role),
+        canManagePrices: isPrimary,
       };
 
       db.adminUsers.push({
@@ -2436,11 +2510,16 @@ export class DatabaseService {
       });
     }
 
+    if (params.password) {
+      if (!db.adminCredentials) db.adminCredentials = {};
+      db.adminCredentials[cleanEmail] = await hashPassword(params.password);
+    }
+
     this.addAdminAuditLog({
       action: 'ADMIN_ADDED',
       actorEmail: cleanActor,
       targetEmail: cleanEmail,
-      details: `New administrator email authorized with role ${params.role}.`,
+      details: `New administrator email authorized with role ${params.role}${params.password ? ' (password configured securely)' : ''}.`,
       status: 'SUCCESS',
     });
 
@@ -2449,6 +2528,90 @@ export class DatabaseService {
       success: true,
       message: `Administrator email ${cleanEmail} successfully authorized for ${params.role} access.`,
       record: newAuthRecord,
+    };
+  }
+
+  public hasPasswordSet(email: string): boolean {
+    const db = this.getSnapshot();
+    const cleanEmail = email.trim().toLowerCase();
+    return Boolean(db.adminCredentials && db.adminCredentials[cleanEmail]);
+  }
+
+  public async setAdminPassword(
+    params: { targetEmail: string; newPassword: string; currentPassword?: string },
+    actorEmail: string
+  ): Promise<{ success: boolean; message: string }> {
+    const db = this.getSnapshot();
+    const cleanActor = actorEmail.trim().toLowerCase();
+    const cleanTarget = params.targetEmail.trim().toLowerCase();
+
+    const actor = db.adminUsers.find((a) => a.email.toLowerCase() === cleanActor && a.status === 'active');
+    if (!actor || actor.role !== 'OWNER' || cleanActor !== PRIMARY_OWNER_EMAIL) {
+      this.addAdminAuditLog({
+        action: 'PASSWORD_UPDATED',
+        actorEmail: cleanActor,
+        targetEmail: cleanTarget,
+        details: 'Unauthorized attempt to update administrator password blocked.',
+        status: 'DENIED',
+      });
+      return {
+        success: false,
+        message: 'Permission denied: Only the Primary Website Owner (ranggurukul@gmail.com) can manage passwords.',
+      };
+    }
+
+    const targetExists =
+      db.authorizedAdminEmails?.some((ae) => ae.email.toLowerCase() === cleanTarget && ae.status === 'active') ||
+      db.adminUsers.some((a) => a.email.toLowerCase() === cleanTarget && a.status === 'active');
+
+    if (!targetExists) {
+      return { success: false, message: 'Target administrator account not found or is disabled.' };
+    }
+
+    if (!params.newPassword || params.newPassword.length < 8) {
+      return { success: false, message: 'New password must be at least 8 characters long.' };
+    }
+
+    if (!db.adminCredentials) db.adminCredentials = {};
+
+    // If owner is changing their own password and already has one set, verify current password
+    if (cleanTarget === cleanActor && db.adminCredentials[cleanActor]) {
+      if (!params.currentPassword) {
+        return { success: false, message: 'Please enter your current password to set a new one.' };
+      }
+      const currentValid = await verifyPassword(params.currentPassword, db.adminCredentials[cleanActor]);
+      if (!currentValid) {
+        this.addAdminAuditLog({
+          action: 'PASSWORD_UPDATED',
+          actorEmail: cleanActor,
+          targetEmail: cleanTarget,
+          details: 'Owner password change rejected: current password did not match.',
+          status: 'DENIED',
+        });
+        return { success: false, message: 'Current password is incorrect.' };
+      }
+    }
+
+    db.adminCredentials[cleanTarget] = await hashPassword(params.newPassword);
+
+    this.addAdminAuditLog({
+      action: 'PASSWORD_UPDATED',
+      actorEmail: cleanActor,
+      targetEmail: cleanTarget,
+      details:
+        cleanTarget === cleanActor
+          ? 'Primary Owner password updated securely (salted PBKDF2-SHA256).'
+          : `Password set/updated for administrator ${cleanTarget} by Primary Owner.`,
+      status: 'SUCCESS',
+    });
+
+    this.save();
+    return {
+      success: true,
+      message:
+        cleanTarget === cleanActor
+          ? 'Owner password updated securely.'
+          : `Password updated securely for ${cleanTarget}.`,
     };
   }
 
@@ -2494,6 +2657,9 @@ export class DatabaseService {
     const targetEmail = targetAuth.email.toLowerCase();
     db.authorizedAdminEmails = db.authorizedAdminEmails.filter((ae) => ae.email.toLowerCase() !== targetEmail);
     db.adminUsers = db.adminUsers.filter((a) => a.email.toLowerCase() !== targetEmail);
+    if (db.adminCredentials && db.adminCredentials[targetEmail]) {
+      delete db.adminCredentials[targetEmail];
+    }
     this.revokeAllSessionsForEmail(targetEmail);
 
     this.addAdminAuditLog({
@@ -2535,19 +2701,20 @@ export class DatabaseService {
   }
 
   // --- STRICT VERIFICATION & ACCESS CONTROL ---
-  public verifyAdminAccess(
+  public async verifyAdminAccess(
     email: string,
     method: 'google' | 'password',
+    password?: string,
     ip?: string,
     userAgent?: string
-  ): {
+  ): Promise<{
     authorized: boolean;
-    errorType?: 'NOT_AUTHORIZED' | 'ACCOUNT_DISABLED' | 'INVALID_ROLE';
+    errorType?: 'NOT_AUTHORIZED' | 'ACCOUNT_DISABLED' | 'INVALID_ROLE' | 'INVALID_PASSWORD' | 'PASSWORD_NOT_SET';
     message: string;
     admin?: AdminUser;
     isOwner?: boolean;
     sessionToken?: string;
-  } {
+  }> {
     const db = this.getSnapshot();
     const cleanEmail = email.trim().toLowerCase();
 
@@ -2631,6 +2798,62 @@ export class DatabaseService {
       createdAt: authRecord!.addedAt,
     };
 
+    // Enforce that ONLY ranggurukul@gmail.com may authenticate as OWNER
+    if (matchedAdmin.role === 'OWNER' && cleanEmail !== PRIMARY_OWNER_EMAIL) {
+      this.addAdminAuditLog({
+        action: 'LOGIN_FAILED',
+        actorEmail: cleanEmail,
+        details: `Blocked OWNER login attempt from non-primary email (${cleanEmail}). Only ${PRIMARY_OWNER_EMAIL} is permitted as Owner.`,
+        status: 'DENIED',
+        ipAddress: ip,
+        userAgent,
+      });
+      return {
+        authorized: false,
+        errorType: 'INVALID_ROLE',
+        message: `Access Denied: Only ${PRIMARY_OWNER_EMAIL} is authorized to log in as Primary Owner.`,
+      };
+    }
+
+    // Strict cryptographic password verification for email + password login
+    if (method === 'password') {
+      const storedHash = db.adminCredentials?.[cleanEmail];
+      if (!storedHash) {
+        this.addAdminAuditLog({
+          action: 'LOGIN_FAILED',
+          actorEmail: cleanEmail,
+          details: 'Password login attempted before a password was configured for this account.',
+          status: 'DENIED',
+          ipAddress: ip,
+          userAgent,
+        });
+        return {
+          authorized: false,
+          errorType: 'PASSWORD_NOT_SET',
+          message:
+            cleanEmail === PRIMARY_OWNER_EMAIL
+              ? 'Owner password is not set yet. Please sign in with Google first and set your password in Settings.'
+              : 'Password login is not configured for this account. Please sign in with Google or ask the Owner to set a password.',
+        };
+      }
+
+      if (!password || !(await verifyPassword(password, storedHash))) {
+        this.addAdminAuditLog({
+          action: 'LOGIN_FAILED',
+          actorEmail: cleanEmail,
+          details: 'Login rejected: Invalid password provided.',
+          status: 'DENIED',
+          ipAddress: ip,
+          userAgent,
+        });
+        return {
+          authorized: false,
+          errorType: 'INVALID_PASSWORD',
+          message: 'Invalid email or password. Please check your credentials and try again.',
+        };
+      }
+    }
+
     // Update lastLogin
     const nowIso = new Date().toISOString();
     matchedAdmin.lastLogin = nowIso;
@@ -2644,7 +2867,7 @@ export class DatabaseService {
       action: 'LOGIN_SUCCESS',
       actorEmail: cleanEmail,
       details: `Administrator session authenticated successfully via ${
-        method === 'google' ? 'Google OAuth' : 'Password / Passcode'
+        method === 'google' ? 'Google OAuth' : 'Email & Password'
       }. Role: ${matchedAdmin.role}`,
       status: 'SUCCESS',
       ipAddress: ip,

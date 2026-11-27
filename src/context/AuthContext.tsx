@@ -12,7 +12,7 @@ interface AuthContextValue {
   currentMember: MemberUser | null;
   isMemberLoggedIn: boolean;
 
-  adminLogin: (email: string, password?: string) => { success: boolean; message: string; admin?: AdminUser; errorType?: string };
+  adminLogin: (email: string, password?: string) => Promise<{ success: boolean; message: string; admin?: AdminUser; errorType?: string }>;
   adminGoogleLogin: (simulatedEmail?: string) => Promise<{ success: boolean; message: string; admin?: AdminUser; errorType?: string }>;
   adminLogout: () => void;
   canAccess: (permission: keyof AdminUser['permissions']) => boolean;
@@ -125,9 +125,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [members]);
 
   // 1. EMAIL & PASSWORD LOGIN
-  const adminLogin = (email: string, _password?: string) => {
+  const adminLogin = async (email: string, password?: string) => {
     const cleanEmail = email.trim().toLowerCase();
-    const result = verifyAdminAccess(cleanEmail, 'password');
+    const result = await verifyAdminAccess(cleanEmail, 'password', password);
 
     if (!result.authorized || !result.admin) {
       return {
@@ -190,7 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Backend / Database authorization check
-    const authResult = verifyAdminAccess(verifiedEmail, 'google');
+    const authResult = await verifyAdminAccess(verifiedEmail, 'google');
 
     if (!authResult.authorized || !authResult.admin) {
       // Immediately sign out from Firebase/Google session

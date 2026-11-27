@@ -13,6 +13,8 @@ import {
   Database,
   ShieldCheck,
   Activity,
+  KeyRound,
+  Lock,
 } from 'lucide-react';
 import type { SiteSettings, PaymentGatewayConfig, EmailProviderConfig } from '../../types/database';
 import { MediaUploadField } from '../../components/media/MediaUploadField';
@@ -28,13 +30,63 @@ export const AdminSettingsView: React.FC = () => {
     emailConfig,
     updateEmailConfig,
     resetDatabase,
+    setAdminPassword,
+    hasPasswordSet,
   } = useDatabase();
 
-  const { isOwner } = useAuth();
+  const { isOwner, currentAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
-    'general' | 'contact' | 'payments' | 'email' | 'seo' | 'firebase'
+    'general' | 'contact' | 'payments' | 'email' | 'seo' | 'firebase' | 'security'
   >('general');
+
+  // Owner Password Management State (cleared immediately after submit)
+  const [currentPwd, setCurrentPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [pwdStatus, setPwdStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isUpdatingPwd, setIsUpdatingPwd] = useState(false);
+
+  const ownerEmail = currentAdmin?.email || 'ranggurukul@gmail.com';
+  const ownerHasPassword = hasPasswordSet(ownerEmail);
+
+  const handleUpdateOwnerPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwdStatus(null);
+
+    if (!isOwner || !currentAdmin) {
+      setPwdStatus({ type: 'error', message: 'Only the Primary Owner (ranggurukul@gmail.com) can change the owner password.' });
+      return;
+    }
+    if (newPwd.length < 8) {
+      setPwdStatus({ type: 'error', message: 'New password must be at least 8 characters long.' });
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      setPwdStatus({ type: 'error', message: 'New password and confirmation do not match.' });
+      return;
+    }
+
+    setIsUpdatingPwd(true);
+    const res = await setAdminPassword(
+      {
+        targetEmail: currentAdmin.email,
+        newPassword: newPwd,
+        currentPassword: ownerHasPassword ? currentPwd : undefined,
+      },
+      currentAdmin.email
+    );
+    setIsUpdatingPwd(false);
+
+    if (res.success) {
+      setCurrentPwd('');
+      setNewPwd('');
+      setConfirmPwd('');
+      setPwdStatus({ type: 'success', message: res.message });
+    } else {
+      setPwdStatus({ type: 'error', message: res.message });
+    }
+  };
 
   // Cloud Sync Toggle
   const [cloudSyncEnabled, setCloudSyncEnabled] = useState(isFirebaseCloudEnabled());
@@ -94,6 +146,7 @@ export const AdminSettingsView: React.FC = () => {
           { id: 'email', label: 'Email Provider API', icon: Mail },
           { id: 'seo', label: 'SEO & Metadata', icon: Settings },
           { id: 'firebase', label: 'Firebase Cloud Storage', icon: Cloud },
+          { id: 'security', label: 'Security & Passwords', icon: KeyRound },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -113,6 +166,125 @@ export const AdminSettingsView: React.FC = () => {
         })}
       </div>
 
+      {/* TAB 7: SECURITY & OWNER PASSWORD (Separate form) */}
+      {activeTab === 'security' && (
+        <div className="bg-[#181614] border border-[#2b2723] rounded-2xl p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#25221e]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-editorial text-xl font-bold text-white">
+                  Owner Password & Cryptographic Security
+                </h3>
+                <p className="text-xs text-[#9e968b]">
+                  Primary Owner Account: <code className="text-amber-300 font-mono">ranggurukul@gmail.com</code>
+                </p>
+              </div>
+            </div>
+            <span
+              className={`px-3 py-1 rounded-full text-[10px] font-mono uppercase border ${
+                ownerHasPassword
+                  ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300'
+                  : 'bg-amber-950/70 border-amber-500/40 text-amber-300'
+              }`}
+            >
+              {ownerHasPassword ? 'Password Configured' : 'Not Set Yet (Google Only)'}
+            </span>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#141210] border border-[#2e2a25] text-xs text-[#9e968b] leading-relaxed flex items-start gap-3">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <strong className="text-white block mb-0.5">Zero-Plaintext Password Protection</strong>
+              All administrator passwords are encrypted one-way using salted{' '}
+              <code className="text-amber-300">PBKDF2-HMAC-SHA256</code> (100,000 iterations) before storage.
+              Passwords are never stored, logged, or displayed in plaintext anywhere in the system.
+            </div>
+          </div>
+
+          {!isOwner ? (
+            <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/40 text-xs text-rose-300">
+              Only the Primary Website Owner (<code className="font-mono">ranggurukul@gmail.com</code>) can change the owner password.
+            </div>
+          ) : (
+            <form onSubmit={handleUpdateOwnerPassword} className="space-y-4 max-w-md">
+              {ownerHasPassword && (
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-[#9e968b] mb-1 font-semibold">
+                    Current Owner Password *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                    value={currentPwd}
+                    onChange={(e) => setCurrentPwd(e.target.value)}
+                    placeholder="Enter current password"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#201e1b] border border-[#3a3530] text-white text-xs focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-[#9e968b] mb-1 font-semibold">
+                  {ownerHasPassword ? 'New Owner Password *' : 'Set Owner Password *'}
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={newPwd}
+                  onChange={(e) => setNewPwd(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#201e1b] border border-[#3a3530] text-white text-xs focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-[#9e968b] mb-1 font-semibold">
+                  Confirm New Password *
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={confirmPwd}
+                  onChange={(e) => setConfirmPwd(e.target.value)}
+                  placeholder="Re-enter new password"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#201e1b] border border-[#3a3530] text-white text-xs focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              {pwdStatus && (
+                <div
+                  className={`p-3 rounded-xl text-xs border ${
+                    pwdStatus.type === 'success'
+                      ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                      : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+                  }`}
+                >
+                  {pwdStatus.message}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isUpdatingPwd}
+                className="px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-semibold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 shadow-lg disabled:opacity-60 cursor-pointer"
+              >
+                <KeyRound className="w-4 h-4" />
+                <span>{isUpdatingPwd ? 'Encrypting...' : ownerHasPassword ? 'Update Owner Password' : 'Set Owner Password'}</span>
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+
+      {activeTab !== 'security' && (
       <form onSubmit={handleSaveAll} className="space-y-6">
         {/* TAB 1: GENERAL IDENTITY */}
         {activeTab === 'general' && (
@@ -623,6 +795,7 @@ service firebase.storage {
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 };

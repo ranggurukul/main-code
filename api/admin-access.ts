@@ -35,11 +35,7 @@ export default async function handler(req: any, res: any) {
     }
   }
 
-  const primaryOwners = [
-    (process.env.INITIAL_OWNER_EMAIL || '').toLowerCase(),
-    'thematrix2741@gmail.com',
-    'owner@ranggurukul.org',
-  ].filter(Boolean);
+  const primaryOwners = ['ranggurukul@gmail.com'];
 
   // If modifying access (POST / DELETE / PATCH), verify that actor is an Owner
   if (req.method === 'POST') {

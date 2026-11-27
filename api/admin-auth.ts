@@ -48,12 +48,8 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
 
-    // Server-side environment initial owners or fallback
-    const primaryOwners = [
-      (process.env.INITIAL_OWNER_EMAIL || '').toLowerCase(),
-      'thematrix2741@gmail.com',
-      'owner@ranggurukul.org',
-    ].filter(Boolean);
+    // Server-side environment initial owner (strictly ranggurukul@gmail.com)
+    const primaryOwners = ['ranggurukul@gmail.com'];
 
     // Initial authorized whitelist (in production, connected to server-side database or env)
     const serverAuthorizedEmails = [

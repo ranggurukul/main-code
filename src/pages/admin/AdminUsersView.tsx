@@ -32,6 +32,8 @@ export const AdminUsersView: React.FC = () => {
     addAuthorizedEmail,
     removeAuthorizedEmail,
     toggleAuthorizedEmailStatus,
+    setAdminPassword,
+    hasPasswordSet,
     members,
     subscribers,
   } = useDatabase();
@@ -52,6 +54,8 @@ export const AdminUsersView: React.FC = () => {
     status: 'active' | 'disabled';
     notes?: string;
     avatar?: string;
+    password?: string;
+    confirmPassword?: string;
     permissions?: AdminUser['permissions'];
   } | null>(null);
 
@@ -132,7 +136,7 @@ export const AdminUsersView: React.FC = () => {
     setIsAdminModalOpen(true);
   };
 
-  const handleSaveAdminSubmit = (e: React.FormEvent) => {
+  const handleSaveAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAdmin?.name || !editingAdmin.email || !editingAdmin.role) return;
 
@@ -144,6 +148,25 @@ export const AdminUsersView: React.FC = () => {
       return;
     }
 
+    if (editingAdmin.password) {
+      if (editingAdmin.password.length < 8) {
+        setActionFeedback({
+          type: 'error',
+          message: 'Administrator password must be at least 8 characters long.',
+        });
+        return;
+      }
+      if (editingAdmin.password !== editingAdmin.confirmPassword) {
+        setActionFeedback({
+          type: 'error',
+          message: 'Password and confirm password do not match.',
+        });
+        return;
+      }
+    }
+
+    const actorEmail = currentAdmin?.email || 'ranggurukul@gmail.com';
+
     if (editingAdmin.id) {
       // Update existing admin
       saveAdminUser({
@@ -154,20 +177,33 @@ export const AdminUsersView: React.FC = () => {
         status: editingAdmin.status,
         permissions: editingAdmin.permissions as any,
       });
+
+      if (editingAdmin.password) {
+        const pwdRes = await setAdminPassword(
+          { targetEmail: editingAdmin.email, newPassword: editingAdmin.password },
+          actorEmail
+        );
+        if (!pwdRes.success) {
+          setActionFeedback({ type: 'error', message: pwdRes.message });
+          return;
+        }
+      }
+
       setActionFeedback({
         type: 'success',
-        message: `Administrator ${editingAdmin.email} permissions updated successfully.`,
+        message: `Administrator ${editingAdmin.email} updated successfully${editingAdmin.password ? ' with new encrypted password' : ''}.`,
       });
     } else {
-      // Add new authorized email
-      const res = addAuthorizedEmail(
+      // Add new authorized email + optional password
+      const res = await addAuthorizedEmail(
         {
           name: editingAdmin.name,
           email: editingAdmin.email,
           role: editingAdmin.role,
           notes: editingAdmin.notes,
+          password: editingAdmin.password || undefined,
         },
-        currentAdmin?.email || 'owner@ranggurukul.org'
+        actorEmail
       );
 
       if (res.success) {
@@ -196,7 +232,7 @@ export const AdminUsersView: React.FC = () => {
       return;
     }
 
-    const res = toggleAuthorizedEmailStatus(id, currentAdmin?.email || 'owner@ranggurukul.org');
+    const res = toggleAuthorizedEmailStatus(id, currentAdmin?.email || 'ranggurukul@gmail.com');
     if (res.success) {
       setActionFeedback({ type: 'success', message: res.message });
     } else {
@@ -218,7 +254,7 @@ export const AdminUsersView: React.FC = () => {
 
     const res = removeAuthorizedEmail(
       confirmDeleteTarget.email,
-      currentAdmin?.email || 'owner@ranggurukul.org'
+      currentAdmin?.email || 'ranggurukul@gmail.com'
     );
 
     if (res.success) {
@@ -347,13 +383,12 @@ export const AdminUsersView: React.FC = () => {
                     </span>
                   </div>
                   <h3 className="font-editorial text-lg sm:text-xl font-bold text-white mt-0.5">
-                    Mann Gor & Padmashri Anuradha Sen
+                    Rang Gurukul (Sole Primary Owner)
                   </h3>
                   <div className="text-xs text-[#9e968b] mt-0.5 flex flex-wrap items-center gap-3">
                     <span>
-                      Owner Emails:{' '}
-                      <code className="text-amber-300 font-mono">thematrix2741@gmail.com</code> •{' '}
-                      <code className="text-amber-300 font-mono">owner@ranggurukul.org</code>
+                      Owner Email:{' '}
+                      <code className="text-amber-300 font-mono">ranggurukul@gmail.com</code>
                     </span>
                   </div>
                 </div>
@@ -735,8 +770,58 @@ export const AdminUsersView: React.FC = () => {
                   <option value="MEMBERSHIP_ADMIN">MEMBERSHIP ADMIN — Plans & Interns</option>
                   <option value="COMMUNICATION_ADMIN">COMMUNICATION ADMIN — Broadcasts & Subscribers</option>
                   <option value="SUPER_ADMIN">SUPER ADMIN — System Administrator</option>
-                  <option value="OWNER">OWNER — Full Sovereign Control (Website Owner)</option>
+                  {editingAdmin.email.trim().toLowerCase() === 'ranggurukul@gmail.com' && (
+                    <option value="OWNER">OWNER — Full Sovereign Control (Primary Owner)</option>
+                  )}
                 </select>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-[#141210] border border-[#2e2a25] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wider text-amber-300 font-semibold flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5" />
+                    {editingAdmin.id ? 'Set / Reset Login Password (Optional)' : 'Login Password (Optional)'}
+                  </span>
+                  {editingAdmin.email && (
+                    <span className="text-[10px] font-mono text-[#9e968b]">
+                      {hasPasswordSet(editingAdmin.email) ? 'Password Active' : 'Google Sign-In Only'}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider text-[#9e968b] mb-1">
+                      {editingAdmin.id ? 'New Password' : 'Password'}
+                    </label>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      value={editingAdmin.password || ''}
+                      onChange={(e) => setEditingAdmin({ ...editingAdmin, password: e.target.value })}
+                      placeholder="Min 8 chars (or leave blank)"
+                      className="w-full px-3 py-2 rounded-lg bg-[#201e1b] border border-[#3a3530] text-white text-xs focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider text-[#9e968b] mb-1">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      value={editingAdmin.confirmPassword || ''}
+                      onChange={(e) => setEditingAdmin({ ...editingAdmin, confirmPassword: e.target.value })}
+                      placeholder="Re-enter password"
+                      className="w-full px-3 py-2 rounded-lg bg-[#201e1b] border border-[#3a3530] text-white text-xs focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-[#787168]">
+                  Stored as a one-way salted PBKDF2-SHA256 hash. Never visible or recoverable in plaintext.
+                </p>
               </div>
 
               <div>
