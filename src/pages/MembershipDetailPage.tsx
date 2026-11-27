@@ -177,6 +177,11 @@ export const MembershipDetailPage: React.FC = () => {
         subtitle={`${plan.duration} Internship`}
         amount={plan.price}
         itemType="membership"
+        prefill={{
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone,
+        }}
         onPaymentSuccess={handlePaymentSuccess}
       />
     </PageTransition>

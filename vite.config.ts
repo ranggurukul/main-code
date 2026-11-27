@@ -297,10 +297,11 @@ const apiDevMiddlewarePlugin = () => ({
             .update(dataToSign)
             .digest('hex');
 
-          const isAuthentic = crypto.timingSafeEqual(
-            Buffer.from(expectedSignature, 'utf-8'),
-            Buffer.from(razorpay_signature, 'utf-8')
-          );
+          const expectedBuffer = Buffer.from(expectedSignature, 'utf-8');
+          const receivedBuffer = Buffer.from(razorpay_signature, 'utf-8');
+          const isAuthentic =
+            expectedBuffer.length === receivedBuffer.length &&
+            crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
 
           if (isAuthentic) {
             res.statusCode = 200;

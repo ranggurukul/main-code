@@ -9,7 +9,12 @@ interface PaymentModalProps {
   title: string;
   subtitle: string;
   amount: number;
-  itemType: 'membership' | 'workshop' | 'event';
+  itemType: 'membership' | 'workshop' | 'event' | 'patronage';
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
   onPaymentSuccess: (details: {
     transactionId: string;
     paymentMethod: string;
@@ -31,6 +36,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   subtitle,
   amount,
   itemType,
+  prefill,
   onPaymentSuccess,
 }) => {
   const { paymentConfig } = useDatabase();
@@ -93,9 +99,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           backdrop_color: '#121110',
         },
         prefill: {
-          name: '',
-          email: '',
-          contact: '',
+          name: prefill?.name || '',
+          email: prefill?.email || '',
+          contact: prefill?.contact || '',
         },
         modal: {
           ondismiss: () => {

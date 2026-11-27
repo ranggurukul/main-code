@@ -1244,7 +1244,7 @@ const INITIAL_DATABASE: DatabaseSchema = {
     provider: 'Razorpay',
     testMode: true,
     currency: 'INR',
-    razorpayKeyId: 'rzp_test_RangGurukul2026Live',
+    razorpayKeyId: 'rzp_test_U55Trtrut503Is',
     stripePublishableKey: 'pk_test_51RangGurukulCulturalHeritage',
   },
 
@@ -1594,6 +1594,9 @@ export class DatabaseService {
         }
         if (!parsed.adminSessions || !Array.isArray(parsed.adminSessions)) {
           parsed.adminSessions = [];
+        }
+        if (parsed.paymentConfig?.razorpayKeyId === 'rzp_test_RangGurukul2026Live') {
+          parsed.paymentConfig.razorpayKeyId = 'rzp_test_U55Trtrut503Is';
         }
         // Merge with initial in case new keys were added in schema
         this.cache = { ...INITIAL_DATABASE, ...parsed };

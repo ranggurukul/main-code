@@ -420,6 +420,11 @@ export const MembershipPage: React.FC = () => {
           subtitle={`${selectedPlan.duration} Internship • Full Privileges`}
           amount={selectedPlan.price}
           itemType="membership"
+          prefill={{
+            name: formData.name,
+            email: formData.email,
+            contact: formData.phone,
+          }}
           onPaymentSuccess={handlePaymentSuccess}
         />
       )}

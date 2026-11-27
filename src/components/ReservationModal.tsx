@@ -4,6 +4,7 @@ import { X, Ticket, QrCode, Flame } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { PRODUCTIONS_DATA } from '../data/rangData';
 import { useDatabase } from '../context/DatabaseContext';
+import { PaymentModal } from './PaymentModal';
 
 interface ReservationModalProps {
   isOpen: boolean;
@@ -56,7 +57,9 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
+  const [paymentTxnId, setPaymentTxnId] = useState('');
 
   // Synchronize on default changes
   React.useEffect(() => {
@@ -87,8 +90,18 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
 
   const handleBooking = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsPaymentOpen(true);
+  };
+
+  const handlePaymentSuccess = (details: {
+    transactionId: string;
+    paymentMethod: string;
+    amount: number;
+  }) => {
     const code = `RG-${Math.floor(1000 + Math.random() * 9000)}-${city.substring(0, 3).toUpperCase()}`;
     setConfirmationCode(code);
+    setPaymentTxnId(details.transactionId);
+    setIsPaymentOpen(false);
     setIsSuccess(true);
 
     confetti({
@@ -177,7 +190,12 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
               <div className="pt-3 border-t border-[#332f2a] flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[10px] text-[#9e968b]">
                   <QrCode className="w-8 h-8 text-[#d4af37]" />
-                  <span>Scan upon entry at Rang Gurukul box office</span>
+                  <div>
+                    <span className="block">Scan upon entry at Rang Gurukul box office</span>
+                    {paymentTxnId && (
+                      <span className="font-mono text-[#d4af37]">Razorpay ID: {paymentTxnId}</span>
+                    )}
+                  </div>
                 </div>
                 <span className="text-[10px] font-mono text-[#c85a32] uppercase">Doors: 30m prior</span>
               </div>
@@ -347,15 +365,30 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-full bg-[#d4af37] hover:bg-[#fae69e] text-[#121110] font-semibold text-xs uppercase tracking-widest transition-all duration-300 shadow-md shadow-[#d4af37]/20 flex items-center justify-center gap-2 hover:scale-102 mt-4"
+                className="w-full py-3.5 rounded-full bg-[#d4af37] hover:bg-[#fae69e] text-[#121110] font-semibold text-xs uppercase tracking-widest transition-all duration-300 shadow-md shadow-[#d4af37]/20 flex items-center justify-center gap-2 hover:scale-102 mt-4 cursor-pointer"
               >
                 <Ticket className="w-4 h-4" />
-                Confirm & Issue Digital Passes
+                Proceed to Pay ₹{totalPrice.toLocaleString('en-IN')} & Issue Passes
               </button>
             </form>
           </div>
         )}
       </motion.div>
+
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        title={production}
+        subtitle={`${ticketCount} ${ticketCount === 1 ? 'Pass' : 'Passes'} • ${tier} (${city})`}
+        amount={totalPrice}
+        itemType="event"
+        prefill={{
+          name: guestName,
+          email: guestEmail,
+          contact: guestPhone,
+        }}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

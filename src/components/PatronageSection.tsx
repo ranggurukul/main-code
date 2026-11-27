@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import { HeartHandshake, Check, Flame, Shield, Gift } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { PaymentModal } from './PaymentModal';
 
 export const PatronageSection: React.FC = () => {
   const [pledgedTier, setPledgedTier] = useState<string | null>(null);
+  const [selectedTierForPay, setSelectedTierForPay] = useState<{
+    name: string;
+    level: string;
+    numericAmount: number;
+  } | null>(null);
 
   const tiers = [
     {
@@ -11,6 +17,7 @@ export const PatronageSection: React.FC = () => {
       sanskrit: 'मित्र',
       level: 'Friend of the Arts',
       amount: '₹12,000 / $150',
+      numericAmount: 12000,
       period: 'Annual Endowment',
       benefits: [
         'Priority access to all premiering theatrical stagings',
@@ -25,6 +32,7 @@ export const PatronageSection: React.FC = () => {
       sanskrit: 'संरक्षक मंडल',
       level: 'Distinguished Patron',
       amount: '₹60,000 / $750',
+      numericAmount: 60000,
       period: 'Annual Endowment',
       benefits: [
         'All Mitra privileges plus 4 VIP Season Passes across India',
@@ -40,6 +48,7 @@ export const PatronageSection: React.FC = () => {
       sanskrit: 'सहृदय परिषद',
       level: 'Founders Council',
       amount: '₹2,50,000 / $3,000',
+      numericAmount: 250000,
       period: 'Lifetime Lineage Patron',
       benefits: [
         'All Distinguished Patron privileges in perpetuity',
@@ -52,14 +61,21 @@ export const PatronageSection: React.FC = () => {
     },
   ];
 
-  const handlePledge = (tierName: string) => {
-    setPledgedTier(tierName);
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#D4AF37', '#C85A32', '#FAF7F2'],
-    });
+  const handlePledge = (tier: { name: string; level: string; numericAmount: number }) => {
+    setSelectedTierForPay(tier);
+  };
+
+  const handlePatronagePaymentSuccess = () => {
+    if (selectedTierForPay) {
+      setPledgedTier(selectedTierForPay.name);
+      setSelectedTierForPay(null);
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#D4AF37', '#C85A32', '#FAF7F2'],
+      });
+    }
   };
 
   return (
@@ -139,8 +155,8 @@ export const PatronageSection: React.FC = () => {
                   </div>
                 ) : (
                   <button
-                    onClick={() => handlePledge(tier.name)}
-                    className={`w-full py-3 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 shadow-md ${
+                    onClick={() => handlePledge(tier)}
+                    className={`w-full py-3 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 shadow-md cursor-pointer ${
                       tier.highlight
                         ? 'bg-[#d4af37] hover:bg-[#fae69e] text-[#121110] shadow-[#d4af37]/20 hover:scale-102'
                         : 'border border-[#d4af37]/40 bg-[#221f1c] hover:bg-[#2c2824] text-[#faf7f2] hover:border-[#d4af37]'
@@ -168,6 +184,18 @@ export const PatronageSection: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {selectedTierForPay && (
+        <PaymentModal
+          isOpen={!!selectedTierForPay}
+          onClose={() => setSelectedTierForPay(null)}
+          title={`${selectedTierForPay.name} Patronage`}
+          subtitle={selectedTierForPay.level}
+          amount={selectedTierForPay.numericAmount}
+          itemType="patronage"
+          onPaymentSuccess={handlePatronagePaymentSuccess}
+        />
+      )}
     </section>
   );
 };
