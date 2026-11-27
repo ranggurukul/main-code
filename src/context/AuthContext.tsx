@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // ignore
     }
-    return members[0] || null;
+    return null;
   });
 
   // Verify session validity on mount and when authorizedAdminEmails changes
@@ -118,9 +118,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updated) {
         setCurrentMember(updated);
         localStorage.setItem(MEMBER_STORAGE_KEY, JSON.stringify(updated));
+      } else {
+        // Member was removed or no longer exists
+        setCurrentMember(null);
+        localStorage.removeItem(MEMBER_STORAGE_KEY);
       }
-    } else if (members.length > 0) {
-      setCurrentMember(members[0]);
     }
   }, [members]);
 
